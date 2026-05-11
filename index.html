@@ -6,6 +6,118 @@
   <title>Pulmawe — Disfruta &amp; Comparte · Malalcahuello</title>
   <meta name="description" content="Restaurante Pulmawe en Malalcahuello. Cocina de la zona, hamburguesas artesanales, empanadas, cócteles y eventos. Ruta CH 181 Km 87." />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── SCROLL MODULE: 16:9 layout fix ── */
+    #scroll-module {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    #scroll-section-outer {
+      position: relative;
+      /* Tall enough for smooth frame travel: 300vh gives a good scroll range */
+      height: 300vh;
+    }
+
+    .scroll-module-sticky {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .scroll-module-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .scroll-text {
+      /* unchanged — inherits from style.css */
+    }
+
+    /* The canvas wrapper: 16:9 aspect ratio, no black bars */
+    .scroll-canvas-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #frame-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .canvas-loader {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #111;
+      z-index: 10;
+      gap: 12px;
+      transition: opacity .4s;
+    }
+    .canvas-loader.hidden { opacity: 0; pointer-events: none; }
+
+    .scroll-badge {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,0,0,.55);
+      color: #fff;
+      font-size: .75rem;
+      padding: 6px 14px;
+      border-radius: 999px;
+      backdrop-filter: blur(6px);
+      transition: opacity .4s;
+      pointer-events: none;
+    }
+    .scroll-badge svg { width: 14px; height: 14px; }
+    .scroll-badge.gone { opacity: 0; }
+
+    /* Mobile: stack vertically, maintain 16:9 */
+    @media (max-width: 768px) {
+      #scroll-section-outer {
+        height: 250vh;
+      }
+
+      .scroll-module-layout {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        padding: 80px 20px 40px;
+        align-items: start;
+      }
+
+      .scroll-module-sticky {
+        align-items: flex-start;
+        height: 100vh;
+        overflow-y: auto;
+      }
+
+      .scroll-canvas-wrap {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+      }
+    }
+  </style>
 </head>
 <body>
 
@@ -125,31 +237,33 @@
 
   <!-- ══════════════ SCROLL ANIMATION ══════════════ -->
   <section id="scroll-module">
-    <div class="container">
-      <div class="scroll-module-inner">
-        <div class="scroll-text">
-          <p class="section-tag">Experiencia Visual</p>
-          <h2 class="headline">Cada plato, una obra</h2>
-          <p>Nuestra cocina es un proceso: ingredientes frescos de la zona, técnica y dedicación en cada preparación. Desliza para ver la magia en movimiento.</p>
-          <p style="margin-top:24px;">
-            <a href="#menu" class="btn-primary">Ver el Menú</a>
-          </p>
-        </div>
-        <div class="scroll-canvas-wrap" id="scroll-canvas-wrap">
-          <!-- Loader -->
-          <div class="canvas-loader" id="canvas-loader">
-            <span class="loader-text">Cargando</span>
-            <div class="loader-bar"><div class="loader-fill" id="loader-fill"></div></div>
-            <span class="loader-pct" id="loader-pct">0%</span>
+    <div id="scroll-section-outer">
+      <div class="scroll-module-sticky" id="scroll-sticky">
+        <div class="scroll-module-layout container">
+          <div class="scroll-text">
+            <p class="section-tag">Pumalhue en cada estación</p>
+            <h2 class="headline">Un lugar que cambia con el clima, la luz y la magia del sur</h2>
+            <p>Desde los días cálidos de verano hasta la nieve del invierno, Pumalhue se transforma con cada estación, manteniendo siempre su esencia de bosque, montaña y experiencia sureña.</p>
+            <p style="margin-top:24px;">
+              <a href="#menu" class="btn-primary">Ver el Menú</a>
+            </p>
           </div>
-          <!-- Canvas -->
-          <canvas id="frame-canvas"></canvas>
-          <!-- Badge -->
-          <div class="scroll-badge">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 5v14M5 12l7 7 7-7"/>
-            </svg>
-            Scroll
+          <div class="scroll-canvas-wrap" id="scroll-canvas-wrap">
+            <!-- Loader -->
+            <div class="canvas-loader" id="canvas-loader">
+              <span class="loader-text">Cargando</span>
+              <div class="loader-bar"><div class="loader-fill" id="loader-fill"></div></div>
+              <span class="loader-pct" id="loader-pct">0%</span>
+            </div>
+            <!-- Canvas -->
+            <canvas id="frame-canvas"></canvas>
+            <!-- Badge -->
+            <div class="scroll-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12l7 7 7-7"/>
+              </svg>
+              Scroll
+            </div>
           </div>
         </div>
       </div>
@@ -230,27 +344,23 @@
     </div>
   </section>
 
-  <!-- ══════════════ PRODUCTOS DE LA ZONA ══════════════ -->
-  <section id="productos">
+  <!-- ══════════════ COCKTAILS ══════════════ -->
+  <section id="cocktails">
     <div class="container">
-      <div class="productos-grid">
-        <div class="productos-img">
-          <img src="assets/productos_de_la_zona.jpeg" alt="Productos de la zona · Araucanía" loading="lazy" />
+      <div class="cocktails-inner">
+        <div class="cocktails-img">
+          <img src="assets/Luxury_cocktail_studio_photography.jpeg" alt="Cócteles Pulmawe" loading="lazy" />
         </div>
-        <div class="productos-text">
-          <p class="section-tag">Identidad Territorial</p>
-          <h2 class="headline">Del bosque andino a tu mesa</h2>
-          <p>Pulmawe nace del paisaje que lo rodea. Usamos ingredientes emblemáticos de la Araucanía: morchelas y callampas del bosque húmedo, piñones de la Araucaria milenaria, rosa mosqueta silvestre, cervezas artesanales locales y hongos nativos que solo crecen a estas alturas.</p>
-          <p>Cocina de territorio: respetuosa con el entorno, fiel a los sabores que llevan siglos aquí.</p>
-          <div class="productos-tags">
-            <span class="ptag">Morchelas</span>
-            <span class="ptag">Piñones</span>
-            <span class="ptag">Rosa Mosqueta</span>
-            <span class="ptag">Hongos Nativos</span>
-            <span class="ptag">Calafate</span>
-            <span class="ptag">Maqui</span>
-            <span class="ptag">Nalcas</span>
-            <span class="ptag">Cervezas de la Zona</span>
+        <div class="cocktails-text">
+          <p class="section-tag">Bar</p>
+          <h2 class="headline">Cócteles con alma propia</h2>
+          <p>Nuestra barra combina lo clásico con lo local. Pisco Sour con sabores de la zona, Mojitos de temporada, Ramazzotti Spritz y mucho más. También servimos cervezas artesanales lonquimay, Tolcura y Cumbres.</p>
+          <div class="cocktail-list">
+            <div class="cocktail-item"><span class="c-name">Pisco Sour Sabor (rosa mosqueta, maqui, calafate)</span><span class="c-price">$6.200</span></div>
+            <div class="cocktail-item"><span class="c-name">Ramazzotti Spritz</span><span class="c-price">$6.200</span></div>
+            <div class="cocktail-item"><span class="c-name">Tropical Gin</span><span class="c-price">$7.200</span></div>
+            <div class="cocktail-item"><span class="c-name">Moscow Mule</span><span class="c-price">$6.700</span></div>
+            <div class="cocktail-item"><span class="c-name">Cervezas artesanales de la zona</span><span class="c-price">$5.200</span></div>
           </div>
         </div>
       </div>
@@ -283,23 +393,27 @@
     </div>
   </section>
 
-  <!-- ══════════════ COCKTAILS ══════════════ -->
-  <section id="cocktails">
+  <!-- ══════════════ PRODUCTOS DE LA ZONA ══════════════ -->
+  <section id="productos">
     <div class="container">
-      <div class="cocktails-inner">
-        <div class="cocktails-img">
-          <img src="assets/Luxury_cocktail_studio_photography.jpeg" alt="Cócteles Pulmawe" loading="lazy" />
+      <div class="productos-grid">
+        <div class="productos-img">
+          <img src="assets/productos_de_la_zona.jpeg" alt="Productos de la zona · Araucanía" loading="lazy" />
         </div>
-        <div class="cocktails-text">
-          <p class="section-tag">Bar</p>
-          <h2 class="headline">Cócteles con alma propia</h2>
-          <p>Nuestra barra combina lo clásico con lo local. Pisco Sour con sabores de la zona, Mojitos de temporada, Ramazzotti Spritz y mucho más. También servimos cervezas artesanales lonquimay, Tolcura y Cumbres.</p>
-          <div class="cocktail-list">
-            <div class="cocktail-item"><span class="c-name">Pisco Sour Sabor (rosa mosqueta, maqui, calafate)</span><span class="c-price">$6.200</span></div>
-            <div class="cocktail-item"><span class="c-name">Ramazzotti Spritz</span><span class="c-price">$6.200</span></div>
-            <div class="cocktail-item"><span class="c-name">Tropical Gin</span><span class="c-price">$7.200</span></div>
-            <div class="cocktail-item"><span class="c-name">Moscow Mule</span><span class="c-price">$6.700</span></div>
-            <div class="cocktail-item"><span class="c-name">Cervezas artesanales de la zona</span><span class="c-price">$5.200</span></div>
+        <div class="productos-text">
+          <p class="section-tag">Identidad Territorial</p>
+          <h2 class="headline">Del bosque andino a tu mesa</h2>
+          <p>Pulmawe nace del paisaje que lo rodea. Usamos ingredientes emblemáticos de la Araucanía: morchelas y callampas del bosque húmedo, piñones de la Araucaria milenaria, rosa mosqueta silvestre, cervezas artesanales locales y hongos nativos que solo crecen a estas alturas.</p>
+          <p>Cocina de territorio: respetuosa con el entorno, fiel a los sabores que llevan siglos aquí.</p>
+          <div class="productos-tags">
+            <span class="ptag">Morchelas</span>
+            <span class="ptag">Piñones</span>
+            <span class="ptag">Rosa Mosqueta</span>
+            <span class="ptag">Hongos Nativos</span>
+            <span class="ptag">Calafate</span>
+            <span class="ptag">Maqui</span>
+            <span class="ptag">Nalcas</span>
+            <span class="ptag">Cervezas de la Zona</span>
           </div>
         </div>
       </div>
@@ -428,5 +542,123 @@
   </footer>
 
   <script src="main.js"></script>
+  <script>
+  /* ══════════ SCROLL FRAME ANIMATION ══════════ */
+  (() => {
+    /* ── CONFIG — change only these 3 values ── */
+    const TOTAL_FRAMES = 192;   // total number of PNG frames
+    const NATIVE_W     = 1920;  // native frame width  (px)
+    const NATIVE_H     = 1080;  // native frame height (px) — 16:9
+    const FRAMES_DIR   = './frames/';
+    const pad = n => String(n).padStart(4, '0');
+
+    /* ── DOM refs ── */
+    const canvas  = document.getElementById('frame-canvas');
+    const ctx     = canvas.getContext('2d', { alpha: false });
+    const loader  = document.getElementById('canvas-loader');
+    const fill    = document.getElementById('loader-fill');
+    const pct     = document.getElementById('loader-pct');
+    const badge   = document.querySelector('.scroll-badge');
+    const outer   = document.getElementById('scroll-section-outer');
+
+    /* ── Size canvas to its CSS box (16:9 wrapper) ── */
+    function sizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr  = window.devicePixelRatio || 1;
+      canvas.width  = Math.round(rect.width  * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    /* ── Draw frame cover-fit inside canvas ── */
+    function drawCover(img) {
+      if (!img || !img.naturalWidth) return;
+      const cw = canvas.width  / (window.devicePixelRatio || 1);
+      const ch = canvas.height / (window.devicePixelRatio || 1);
+      const imgAspect    = NATIVE_W / NATIVE_H;
+      const canvasAspect = cw / ch;
+      let srcX, srcY, srcW, srcH;
+      if (canvasAspect > imgAspect) {
+        srcW = NATIVE_W; srcH = NATIVE_W / canvasAspect;
+        srcX = 0;        srcY = (NATIVE_H - srcH) / 2;
+      } else {
+        srcH = NATIVE_H; srcW = NATIVE_H * canvasAspect;
+        srcY = 0;        srcX = (NATIVE_W - srcW) / 2;
+      }
+      ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, cw, ch);
+    }
+
+    /* ── Preload all frames ── */
+    const frames = new Array(TOTAL_FRAMES);
+    let loadedCount = 0;
+
+    function preload() {
+      return new Promise(resolve => {
+        for (let i = 0; i < TOTAL_FRAMES; i++) {
+          const img = new Image();
+          img.onload = img.onerror = () => {
+            loadedCount++;
+            const p = Math.round((loadedCount / TOTAL_FRAMES) * 100);
+            fill.style.width = p + '%';
+            pct.textContent  = p + '%';
+            if (loadedCount === TOTAL_FRAMES) resolve();
+          };
+          /* filename pattern: frames_0001.png, frames_0002.png … */
+          img.src = FRAMES_DIR + 'frames_' + pad(i + 1) + '.png';
+          frames[i] = img;
+        }
+      });
+    }
+
+    /* ── Scroll → frame logic ── */
+    let currentIdx = -1;
+    let rafPending = false;
+    let nextIdx    = 0;
+
+    function draw(idx) {
+      if (idx === currentIdx) return;
+      currentIdx = idx;
+      drawCover(frames[idx]);
+    }
+
+    function onScroll() {
+      const sectionTop  = outer.offsetTop;
+      const scrollRange = outer.offsetHeight - window.innerHeight;
+      const scrolled    = window.scrollY - sectionTop;
+      const progress    = Math.max(0, Math.min(1, scrolled / scrollRange));
+
+      nextIdx = Math.min(TOTAL_FRAMES - 1, Math.floor(progress * TOTAL_FRAMES));
+
+      /* hide scroll badge after small movement */
+      if (scrolled > 40 && badge) badge.classList.add('gone');
+
+      if (!rafPending) {
+        rafPending = true;
+        requestAnimationFrame(() => {
+          draw(nextIdx);
+          rafPending = false;
+        });
+      }
+    }
+
+    /* ── Resize: refit canvas then redraw ── */
+    window.addEventListener('resize', () => {
+      sizeCanvas();
+      const saved = currentIdx < 0 ? 0 : currentIdx;
+      currentIdx  = -1;
+      draw(saved);
+    });
+
+    /* ── Init ── */
+    sizeCanvas();
+    preload().then(() => {
+      loader.classList.add('hidden');
+      currentIdx = -1;
+      draw(0);
+      onScroll(); // snap to correct frame if user has already scrolled
+      window.addEventListener('scroll', onScroll, { passive: true });
+    });
+  })();
+  </script>
 </body>
 </html>
