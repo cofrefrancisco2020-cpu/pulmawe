@@ -7,18 +7,25 @@
   <meta name="description" content="Restaurante Pulmawe en Malalcahuello. Cocina de la zona, hamburguesas artesanales, empanadas, cócteles y eventos. Ruta CH 181 Km 87." />
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* ── SCROLL MODULE: 16:9 layout fix ── */
+    /* ══════════════════════════════════════════════
+       SCROLL MODULE — Frame animation (fixed)
+       Referencia: patrón Trafwe
+    ══════════════════════════════════════════════ */
+
+    /* 1. Sección exterior: sin padding, sin margen */
     #scroll-module {
       padding: 0;
+      margin: 0;
       overflow: hidden;
     }
 
+    /* 2. Contenedor de scroll: altura = duración de la animación */
     #scroll-section-outer {
       position: relative;
-      /* Tall enough for smooth frame travel: 300vh gives a good scroll range */
-      height: 300vh;
+      height: 300vh;   /* 300vh ≈ recorrido cómodo para 192 frames */
     }
 
+    /* 3. Stage sticky: ocupa exactamente 100vh, centrado */
     .scroll-module-sticky {
       position: sticky;
       top: 0;
@@ -27,38 +34,53 @@
       display: flex;
       align-items: center;
       overflow: hidden;
+      /* Sin padding aquí — lo maneja el layout interno */
     }
 
+    /* 4. Layout: texto izq / frame der
+          - columna texto: tamaño fijo para no aplastar el canvas
+          - columna canvas: toma el resto del espacio disponible     */
     .scroll-module-layout {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 420px) 1fr;
       gap: 48px;
       align-items: center;
       width: 100%;
+      /* padding lateral para que respire, sin desbordarse */
+      padding: 0 5vw;
+      box-sizing: border-box;
     }
 
     .scroll-text {
-      /* unchanged — inherits from style.css */
+      /* hereda de style.css — sin cambios */
     }
 
-    /* The canvas wrapper: 16:9 aspect ratio, no black bars */
+    /* 5. Wrapper del canvas: aspect-ratio 16:9 sin recorte ni barra negra
+          — ocupa TODO el ancho disponible de su columna              */
     .scroll-canvas-wrap {
       position: relative;
       width: 100%;
+      /* El truco: forzar 16:9 con aspect-ratio nativo */
       aspect-ratio: 16 / 9;
-      border-radius: 4px;
+      /* Límite vertical para que no salga de pantalla */
+      max-height: calc(100vh - 80px);
       overflow: hidden;
-      background: #000;
+      background: #0d0d0d;
+      border-radius: 4px;
+      /* Corrige desbordamiento en algunos navegadores */
+      contain: layout;
     }
 
+    /* 6. Canvas: posición absoluta llenando TODO el wrapper */
     #frame-canvas {
       position: absolute;
       inset: 0;
-      width: 100%;
-      height: 100%;
+      width: 100% !important;
+      height: 100% !important;
       display: block;
     }
 
+    /* 7. Loader superpuesto */
     .canvas-loader {
       position: absolute;
       inset: 0;
@@ -71,8 +93,12 @@
       gap: 12px;
       transition: opacity .4s;
     }
-    .canvas-loader.hidden { opacity: 0; pointer-events: none; }
+    .canvas-loader.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
 
+    /* 8. Scroll badge */
     .scroll-badge {
       position: absolute;
       bottom: 16px;
@@ -89,32 +115,39 @@
       backdrop-filter: blur(6px);
       transition: opacity .4s;
       pointer-events: none;
+      white-space: nowrap;
     }
-    .scroll-badge svg { width: 14px; height: 14px; }
+    .scroll-badge svg { width: 14px; height: 14px; flex-shrink: 0; }
     .scroll-badge.gone { opacity: 0; }
 
-    /* Mobile: stack vertically, maintain 16:9 */
-    @media (max-width: 768px) {
-      #scroll-section-outer {
-        height: 250vh;
-      }
-
+    /* ── Responsive: tablet ── */
+    @media (max-width: 900px) {
       .scroll-module-layout {
         grid-template-columns: 1fr;
-        gap: 24px;
-        padding: 80px 20px 40px;
-        align-items: start;
+        gap: 28px;
+        padding: 0 24px;
+        /* texto arriba, canvas abajo */
       }
-
-      .scroll-module-sticky {
-        align-items: flex-start;
-        height: 100vh;
-        overflow-y: auto;
-      }
-
       .scroll-canvas-wrap {
-        width: 100%;
-        aspect-ratio: 16 / 9;
+        max-height: none;   /* en móvil, 16:9 puro sin tope */
+      }
+      .scroll-module-sticky {
+        align-items: center;
+        /* deja hueco para el nav fijo */
+        padding-top: 70px;
+        padding-bottom: 24px;
+        box-sizing: border-box;
+      }
+    }
+
+    /* ── Responsive: móvil pequeño ── */
+    @media (max-width: 480px) {
+      #scroll-section-outer {
+        height: 250vh;   /* algo menos de scroll en pantallas chicas */
+      }
+      .scroll-module-layout {
+        padding: 0 16px;
+        gap: 20px;
       }
     }
   </style>
@@ -543,52 +576,75 @@
 
   <script src="main.js"></script>
   <script>
-  /* ══════════ SCROLL FRAME ANIMATION ══════════ */
+  /* ══════════════════════════════════════════════
+     PULMAWE — Scroll Frame Animation
+     Patrón robusto basado en Trafwe
+  ══════════════════════════════════════════════ */
   (() => {
-    /* ── CONFIG — change only these 3 values ── */
-    const TOTAL_FRAMES = 192;   // total number of PNG frames
-    const NATIVE_W     = 1920;  // native frame width  (px)
-    const NATIVE_H     = 1080;  // native frame height (px) — 16:9
+    'use strict';
+
+    /* ── CONFIG ── */
+    const TOTAL_FRAMES = 192;
+    const NATIVE_W     = 1920;
+    const NATIVE_H     = 1080;
     const FRAMES_DIR   = './frames/';
     const pad = n => String(n).padStart(4, '0');
 
     /* ── DOM refs ── */
-    const canvas  = document.getElementById('frame-canvas');
-    const ctx     = canvas.getContext('2d', { alpha: false });
-    const loader  = document.getElementById('canvas-loader');
-    const fill    = document.getElementById('loader-fill');
-    const pct     = document.getElementById('loader-pct');
-    const badge   = document.querySelector('.scroll-badge');
-    const outer   = document.getElementById('scroll-section-outer');
+    const canvas = document.getElementById('frame-canvas');
+    const outer  = document.getElementById('scroll-section-outer');
+    const loader = document.getElementById('canvas-loader');
+    const fill   = document.getElementById('loader-fill');
+    const pct    = document.getElementById('loader-pct');
+    const badge  = document.querySelector('.scroll-badge');
 
-    /* ── Size canvas to its CSS box (16:9 wrapper) ── */
+    if (!canvas || !outer) return;
+
+    const ctx = canvas.getContext('2d', { alpha: false });
+
+    /* ── sizeCanvas: lee el wrapper padre (evita rect=0 en init) ──
+       El canvas tiene position:absolute inset:0, así que el padre
+       (.scroll-canvas-wrap) es quien tiene las dimensiones reales.   */
+    let vpW = 0, vpH = 0, dpr = 1;
+
     function sizeCanvas() {
-      const rect = canvas.getBoundingClientRect();
-      const dpr  = window.devicePixelRatio || 1;
-      canvas.width  = Math.round(rect.width  * dpr);
-      canvas.height = Math.round(rect.height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const wrap = canvas.parentElement;
+      dpr  = window.devicePixelRatio || 1;
+      vpW  = wrap.clientWidth;
+      vpH  = wrap.clientHeight;
+
+      /* Si el wrapper aún no tiene dimensiones (antes del primer paint),
+         calculamos la altura a partir del ancho con ratio 16:9            */
+      if (vpH === 0 && vpW > 0) vpH = Math.round(vpW * (9 / 16));
+
+      canvas.style.width  = vpW + 'px';
+      canvas.style.height = vpH + 'px';
+      canvas.width  = Math.round(vpW * dpr);
+      canvas.height = Math.round(vpH * dpr);
+      ctx.scale(dpr, dpr);
     }
 
-    /* ── Draw frame cover-fit inside canvas ── */
+    /* ── drawCover: cover-fit igual que Trafwe ── */
     function drawCover(img) {
       if (!img || !img.naturalWidth) return;
-      const cw = canvas.width  / (window.devicePixelRatio || 1);
-      const ch = canvas.height / (window.devicePixelRatio || 1);
-      const imgAspect    = NATIVE_W / NATIVE_H;
-      const canvasAspect = cw / ch;
+      const imgAspect    = img.naturalWidth / img.naturalHeight;
+      const canvasAspect = vpW / vpH;
       let srcX, srcY, srcW, srcH;
       if (canvasAspect > imgAspect) {
-        srcW = NATIVE_W; srcH = NATIVE_W / canvasAspect;
-        srcX = 0;        srcY = (NATIVE_H - srcH) / 2;
+        srcW = img.naturalWidth;
+        srcH = img.naturalWidth / canvasAspect;
+        srcX = 0;
+        srcY = (img.naturalHeight - srcH) / 2;
       } else {
-        srcH = NATIVE_H; srcW = NATIVE_H * canvasAspect;
-        srcY = 0;        srcX = (NATIVE_W - srcW) / 2;
+        srcH = img.naturalHeight;
+        srcW = img.naturalHeight * canvasAspect;
+        srcY = 0;
+        srcX = (img.naturalWidth - srcW) / 2;
       }
-      ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, cw, ch);
+      ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, vpW, vpH);
     }
 
-    /* ── Preload all frames ── */
+    /* ── Preload ── */
     const frames = new Array(TOTAL_FRAMES);
     let loadedCount = 0;
 
@@ -599,27 +655,27 @@
           img.onload = img.onerror = () => {
             loadedCount++;
             const p = Math.round((loadedCount / TOTAL_FRAMES) * 100);
-            fill.style.width = p + '%';
-            pct.textContent  = p + '%';
+            if (fill) fill.style.width = p + '%';
+            if (pct)  pct.textContent  = p + '%';
             if (loadedCount === TOTAL_FRAMES) resolve();
           };
-          /* filename pattern: frames_0001.png, frames_0002.png … */
           img.src = FRAMES_DIR + 'frames_' + pad(i + 1) + '.png';
           frames[i] = img;
         }
       });
     }
 
-    /* ── Scroll → frame logic ── */
+    /* ── Draw por índice ── */
     let currentIdx = -1;
-    let rafPending = false;
-    let nextIdx    = 0;
 
     function draw(idx) {
       if (idx === currentIdx) return;
       currentIdx = idx;
       drawCover(frames[idx]);
     }
+
+    /* ── Scroll → frame ── */
+    let rafPending = false, nextIdx = 0;
 
     function onScroll() {
       const sectionTop  = outer.offsetTop;
@@ -629,33 +685,30 @@
 
       nextIdx = Math.min(TOTAL_FRAMES - 1, Math.floor(progress * TOTAL_FRAMES));
 
-      /* hide scroll badge after small movement */
       if (scrolled > 40 && badge) badge.classList.add('gone');
 
       if (!rafPending) {
         rafPending = true;
-        requestAnimationFrame(() => {
-          draw(nextIdx);
-          rafPending = false;
-        });
+        requestAnimationFrame(() => { draw(nextIdx); rafPending = false; });
       }
     }
 
-    /* ── Resize: refit canvas then redraw ── */
+    /* ── Resize ── */
     window.addEventListener('resize', () => {
       sizeCanvas();
       const saved = currentIdx < 0 ? 0 : currentIdx;
-      currentIdx  = -1;
+      currentIdx = -1;
       draw(saved);
-    });
+    }, { passive: true });
 
     /* ── Init ── */
     sizeCanvas();
+
     preload().then(() => {
-      loader.classList.add('hidden');
+      if (loader) loader.classList.add('hidden');
       currentIdx = -1;
       draw(0);
-      onScroll(); // snap to correct frame if user has already scrolled
+      onScroll();
       window.addEventListener('scroll', onScroll, { passive: true });
     });
   })();
