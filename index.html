@@ -17,12 +17,16 @@
       padding: 0;
       margin: 0;
       overflow: hidden;
+      display: block;
     }
 
-    /* 2. Contenedor de scroll: altura = duración de la animación */
+    /* 2. Contenedor de scroll: altura = duración de la animación.
+          overflow:hidden recorta el espacio vacío que queda tras el sticky
+          evitando el gap negro entre esta sección y la siguiente.         */
     #scroll-section-outer {
       position: relative;
-      height: 300vh;   /* 300vh ≈ recorrido cómodo para 192 frames */
+      height: 300vh;
+      overflow: hidden;
     }
 
     /* 3. Stage sticky: ocupa exactamente 100vh, centrado */
@@ -624,6 +628,79 @@
       ctx.scale(dpr, dpr);
     }
 
+    /* ── SCROLL LOCK ──────────────────────────────────────────────────
+       Bloquea el scroll de la página mientras la animación no ha
+       terminado. Cuando el usuario llega al último frame, libera.
+       Usa un offset simulado para que la página no "salte".           */
+    let scrollLocked  = false;
+    let lockedScrollY = 0;   // posición Y donde se activó el lock
+    let animDone      = false;
+
+    function lockScroll(atY) {
+      if (scrollLocked) return;
+      scrollLocked  = true;
+      lockedScrollY = atY;
+      document.body.style.overflow = 'hidden';
+    }
+
+    function unlockScroll() {
+      if (!scrollLocked) return;
+      scrollLocked = false;
+      document.body.style.overflow = '';
+    }
+
+    /* Wheel/touch handler: acumula scroll sintético dentro de la sección */
+    let syntheticScroll = 0;          // scroll acumulado dentro del lock
+    let sectionScrollRange = 0;       // se calcula tras cargar
+
+    function onWheel(e) {
+      if (!scrollLocked) return;
+      e.preventDefault();
+
+      syntheticScroll += e.deltaY;
+      syntheticScroll  = Math.max(0, syntheticScroll);
+
+      /* Progreso dentro de la sección basado en scroll sintético */
+      const progress = Math.min(1, syntheticScroll / sectionScrollRange);
+      const idx = Math.min(TOTAL_FRAMES - 1, Math.floor(progress * TOTAL_FRAMES));
+
+      if (!rafPending) {
+        rafPending = true;
+        requestAnimationFrame(() => { draw(idx); rafPending = false; });
+      }
+
+      /* Cuando llega al 100%, desbloquea */
+      if (progress >= 1) {
+        animDone = true;
+        unlockScroll();
+        /* Lleva el scroll real al punto exacto donde termina la sección */
+        window.scrollTo({ top: lockedScrollY + sectionScrollRange, behavior: 'instant' });
+      }
+    }
+
+    /* Touch support */
+    let touchStartY = 0;
+    function onTouchStart(e) { touchStartY = e.touches[0].clientY; }
+    function onTouchMove(e) {
+      if (!scrollLocked) return;
+      e.preventDefault();
+      const delta = touchStartY - e.touches[0].clientY;
+      touchStartY  = e.touches[0].clientY;
+
+      syntheticScroll += delta;
+      syntheticScroll  = Math.max(0, syntheticScroll);
+
+      const progress = Math.min(1, syntheticScroll / sectionScrollRange);
+      const idx = Math.min(TOTAL_FRAMES - 1, Math.floor(progress * TOTAL_FRAMES));
+      draw(idx);
+
+      if (progress >= 1) {
+        animDone = true;
+        unlockScroll();
+        window.scrollTo({ top: lockedScrollY + sectionScrollRange, behavior: 'instant' });
+      }
+    }
+
     /* ── drawCover: cover-fit igual que Trafwe ── */
     function drawCover(img) {
       if (!img || !img.naturalWidth) return;
@@ -674,10 +751,12 @@
       drawCover(frames[idx]);
     }
 
-    /* ── Scroll → frame ── */
+    /* ── Scroll → frame (cuando NO está bloqueado) ── */
     let rafPending = false, nextIdx = 0;
 
     function onScroll() {
+      if (scrollLocked) return;
+
       const sectionTop  = outer.offsetTop;
       const scrollRange = outer.offsetHeight - window.innerHeight;
       const scrolled    = window.scrollY - sectionTop;
@@ -686,6 +765,12 @@
       nextIdx = Math.min(TOTAL_FRAMES - 1, Math.floor(progress * TOTAL_FRAMES));
 
       if (scrolled > 40 && badge) badge.classList.add('gone');
+
+      /* Activa el lock justo cuando el usuario entra a la sección */
+      if (!animDone && scrolled >= 0 && scrolled < scrollRange) {
+        syntheticScroll = scrolled;   // sincroniza el acumulador con el scroll real
+        lockScroll(sectionTop);
+      }
 
       if (!rafPending) {
         rafPending = true;
@@ -696,6 +781,7 @@
     /* ── Resize ── */
     window.addEventListener('resize', () => {
       sizeCanvas();
+      sectionScrollRange = outer.offsetHeight - window.innerHeight;
       const saved = currentIdx < 0 ? 0 : currentIdx;
       currentIdx = -1;
       draw(saved);
@@ -706,10 +792,16 @@
 
     preload().then(() => {
       if (loader) loader.classList.add('hidden');
+      sectionScrollRange = outer.offsetHeight - window.innerHeight;
       currentIdx = -1;
       draw(0);
       onScroll();
       window.addEventListener('scroll', onScroll, { passive: true });
+
+      /* Wheel y touch: passive:false para poder llamar preventDefault */
+      window.addEventListener('wheel',      onWheel,      { passive: false });
+      window.addEventListener('touchstart', onTouchStart, { passive: true  });
+      window.addEventListener('touchmove',  onTouchMove,  { passive: false });
     });
   })();
   </script>
