@@ -20,13 +20,11 @@
       display: block;
     }
 
-    /* 2. Contenedor de scroll: altura = duración de la animación.
-          overflow:hidden recorta el espacio vacío que queda tras el sticky
-          evitando el gap negro entre esta sección y la siguiente.         */
+    /* 2. Contenedor de scroll: solo 100vh.
+          La duración la maneja el lock en JS — sin espacio sobrante. */
     #scroll-section-outer {
       position: relative;
-      height: 300vh;
-      overflow: hidden;
+      height: 100vh;
     }
 
     /* 3. Stage sticky: ocupa exactamente 100vh, centrado */
@@ -146,9 +144,6 @@
 
     /* ── Responsive: móvil pequeño ── */
     @media (max-width: 480px) {
-      #scroll-section-outer {
-        height: 250vh;   /* algo menos de scroll en pantallas chicas */
-      }
       .scroll-module-layout {
         padding: 0 16px;
         gap: 20px;
@@ -582,19 +577,18 @@
   <script>
   /* ══════════════════════════════════════════════
      PULMAWE — Scroll Frame Animation
-     Patrón robusto basado en Trafwe
+     Lock bidireccional: funciona hacia abajo y hacia arriba
   ══════════════════════════════════════════════ */
   (() => {
     'use strict';
 
     /* ── CONFIG ── */
-    const TOTAL_FRAMES = 192;
-    const NATIVE_W     = 1920;
-    const NATIVE_H     = 1080;
-    const FRAMES_DIR   = './frames/';
+    const TOTAL_FRAMES  = 192;
+    const FRAMES_DIR    = './frames/';
+    const SCROLL_AMOUNT = 2400; // px totales de "scroll virtual" para recorrer todos los frames
     const pad = n => String(n).padStart(4, '0');
 
-    /* ── DOM refs ── */
+    /* ── DOM ── */
     const canvas = document.getElementById('frame-canvas');
     const outer  = document.getElementById('scroll-section-outer');
     const loader = document.getElementById('canvas-loader');
@@ -606,21 +600,15 @@
 
     const ctx = canvas.getContext('2d', { alpha: false });
 
-    /* ── sizeCanvas: lee el wrapper padre (evita rect=0 en init) ──
-       El canvas tiene position:absolute inset:0, así que el padre
-       (.scroll-canvas-wrap) es quien tiene las dimensiones reales.   */
+    /* ── Canvas sizing ── */
     let vpW = 0, vpH = 0, dpr = 1;
 
     function sizeCanvas() {
       const wrap = canvas.parentElement;
-      dpr  = window.devicePixelRatio || 1;
-      vpW  = wrap.clientWidth;
-      vpH  = wrap.clientHeight;
-
-      /* Si el wrapper aún no tiene dimensiones (antes del primer paint),
-         calculamos la altura a partir del ancho con ratio 16:9            */
-      if (vpH === 0 && vpW > 0) vpH = Math.round(vpW * (9 / 16));
-
+      dpr = window.devicePixelRatio || 1;
+      vpW = wrap.clientWidth;
+      vpH = wrap.clientHeight;
+      if (vpH === 0 && vpW > 0) vpH = Math.round(vpW * 9 / 16);
       canvas.style.width  = vpW + 'px';
       canvas.style.height = vpH + 'px';
       canvas.width  = Math.round(vpW * dpr);
@@ -628,97 +616,20 @@
       ctx.scale(dpr, dpr);
     }
 
-    /* ── SCROLL LOCK ──────────────────────────────────────────────────
-       Bloquea el scroll de la página mientras la animación no ha
-       terminado. Cuando el usuario llega al último frame, libera.
-       Usa un offset simulado para que la página no "salte".           */
-    let scrollLocked  = false;
-    let lockedScrollY = 0;   // posición Y donde se activó el lock
-    let animDone      = false;
-
-    function lockScroll(atY) {
-      if (scrollLocked) return;
-      scrollLocked  = true;
-      lockedScrollY = atY;
-      document.body.style.overflow = 'hidden';
-    }
-
-    function unlockScroll() {
-      if (!scrollLocked) return;
-      scrollLocked = false;
-      document.body.style.overflow = '';
-    }
-
-    /* Wheel/touch handler: acumula scroll sintético dentro de la sección */
-    let syntheticScroll = 0;          // scroll acumulado dentro del lock
-    let sectionScrollRange = 0;       // se calcula tras cargar
-
-    function onWheel(e) {
-      if (!scrollLocked) return;
-      e.preventDefault();
-
-      syntheticScroll += e.deltaY;
-      syntheticScroll  = Math.max(0, syntheticScroll);
-
-      /* Progreso dentro de la sección basado en scroll sintético */
-      const progress = Math.min(1, syntheticScroll / sectionScrollRange);
-      const idx = Math.min(TOTAL_FRAMES - 1, Math.floor(progress * TOTAL_FRAMES));
-
-      if (!rafPending) {
-        rafPending = true;
-        requestAnimationFrame(() => { draw(idx); rafPending = false; });
-      }
-
-      /* Cuando llega al 100%, desbloquea */
-      if (progress >= 1) {
-        animDone = true;
-        unlockScroll();
-        /* Lleva el scroll real al punto exacto donde termina la sección */
-        window.scrollTo({ top: lockedScrollY + sectionScrollRange, behavior: 'instant' });
-      }
-    }
-
-    /* Touch support */
-    let touchStartY = 0;
-    function onTouchStart(e) { touchStartY = e.touches[0].clientY; }
-    function onTouchMove(e) {
-      if (!scrollLocked) return;
-      e.preventDefault();
-      const delta = touchStartY - e.touches[0].clientY;
-      touchStartY  = e.touches[0].clientY;
-
-      syntheticScroll += delta;
-      syntheticScroll  = Math.max(0, syntheticScroll);
-
-      const progress = Math.min(1, syntheticScroll / sectionScrollRange);
-      const idx = Math.min(TOTAL_FRAMES - 1, Math.floor(progress * TOTAL_FRAMES));
-      draw(idx);
-
-      if (progress >= 1) {
-        animDone = true;
-        unlockScroll();
-        window.scrollTo({ top: lockedScrollY + sectionScrollRange, behavior: 'instant' });
-      }
-    }
-
-    /* ── drawCover: cover-fit igual que Trafwe ── */
+    /* ── drawCover ── */
     function drawCover(img) {
       if (!img || !img.naturalWidth) return;
-      const imgAspect    = img.naturalWidth / img.naturalHeight;
-      const canvasAspect = vpW / vpH;
-      let srcX, srcY, srcW, srcH;
-      if (canvasAspect > imgAspect) {
-        srcW = img.naturalWidth;
-        srcH = img.naturalWidth / canvasAspect;
-        srcX = 0;
-        srcY = (img.naturalHeight - srcH) / 2;
+      const ia = img.naturalWidth / img.naturalHeight;
+      const ca = vpW / vpH;
+      let sx, sy, sw, sh;
+      if (ca > ia) {
+        sw = img.naturalWidth;  sh = sw / ca;
+        sx = 0;                 sy = (img.naturalHeight - sh) / 2;
       } else {
-        srcH = img.naturalHeight;
-        srcW = img.naturalHeight * canvasAspect;
-        srcY = 0;
-        srcX = (img.naturalWidth - srcW) / 2;
+        sh = img.naturalHeight; sw = sh * ca;
+        sy = 0;                 sx = (img.naturalWidth - sw) / 2;
       }
-      ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, vpW, vpH);
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, vpW, vpH);
     }
 
     /* ── Preload ── */
@@ -742,46 +653,169 @@
       });
     }
 
-    /* ── Draw por índice ── */
+    /* ── Draw ── */
     let currentIdx = -1;
+    let rafPending = false;
 
     function draw(idx) {
+      idx = Math.max(0, Math.min(TOTAL_FRAMES - 1, idx));
       if (idx === currentIdx) return;
       currentIdx = idx;
       drawCover(frames[idx]);
     }
 
-    /* ── Scroll → frame (cuando NO está bloqueado) ── */
-    let rafPending = false, nextIdx = 0;
+    /* ══════════════════════════════════════════
+       SCROLL LOCK BIDIRECCIONAL
+       ─────────────────────────────────────────
+       Estado:
+         virtualScroll  → cuánto "scroll virtual" llevamos dentro
+                          de la animación [0 … SCROLL_AMOUNT]
+         locked         → si el page-scroll está bloqueado ahora
 
-    function onScroll() {
-      if (scrollLocked) return;
+       Flujo:
+         1. Usuario scrollea hacia abajo → entra a la sección
+            → lock activo, virtualScroll sube de 0 a SCROLL_AMOUNT
+            → al llegar a SCROLL_AMOUNT → unlock, page continúa abajo
 
-      const sectionTop  = outer.offsetTop;
-      const scrollRange = outer.offsetHeight - window.innerHeight;
-      const scrolled    = window.scrollY - sectionTop;
-      const progress    = Math.max(0, Math.min(1, scrolled / scrollRange));
+         2. Usuario scrollea hacia arriba desde abajo de la sección
+            → re-entra a la sección por el borde inferior
+            → lock activo, virtualScroll baja de SCROLL_AMOUNT a 0
+            → al llegar a 0 → unlock, page continúa arriba
 
-      nextIdx = Math.min(TOTAL_FRAMES - 1, Math.floor(progress * TOTAL_FRAMES));
+         La detección de "entrada" se hace comparando window.scrollY
+         con los bordes del outer (sectionTop y sectionTop+outerH-vh).
+    ══════════════════════════════════════════ */
+    let locked        = false;
+    let virtualScroll = 0;   // [0 … SCROLL_AMOUNT]
+    let lastPageY     = 0;   // para detectar dirección en onScroll
 
-      if (scrolled > 40 && badge) badge.classList.add('gone');
+    function getSectionBounds() {
+      const top    = outer.offsetTop;
+      const height = outer.offsetHeight;       // 100vh
+      const vh     = window.innerHeight;
+      return { top, bottom: top + height - vh }; // bottom = scrollY donde el outer sale de vista
+    }
 
-      /* Activa el lock justo cuando el usuario entra a la sección */
-      if (!animDone && scrolled >= 0 && scrolled < scrollRange) {
-        syntheticScroll = scrolled;   // sincroniza el acumulador con el scroll real
-        lockScroll(sectionTop);
+    function lockAt(pageY) {
+      if (locked) return;
+      locked = true;
+      lastPageY = pageY;
+      document.body.style.overflow = 'hidden';
+      if (badge) badge.classList.remove('gone');
+    }
+
+    function unlock() {
+      if (!locked) return;
+      locked = false;
+      document.body.style.overflow = '';
+    }
+
+    /* ── Wheel handler ── */
+    function onWheel(e) {
+      const { top, bottom } = getSectionBounds();
+      const pageY = window.scrollY;
+
+      /* ¿Estamos en zona de la sección? */
+      const inSection = pageY >= top - 2 && pageY <= bottom + 2;
+
+      if (!inSection) return; // fuera de la sección: no intervenir
+
+      e.preventDefault();
+
+      const goingDown = e.deltaY > 0;
+      const goingUp   = e.deltaY < 0;
+
+      /* Si no está bloqueado pero estamos en el borde correcto → bloquear */
+      if (!locked) {
+        if (goingDown && pageY >= top - 2 && virtualScroll < SCROLL_AMOUNT) {
+          lockAt(pageY);
+        } else if (goingUp && pageY >= bottom - 2 && virtualScroll > 0) {
+          lockAt(pageY);
+        } else {
+          return; // deja pasar el scroll normal
+        }
       }
 
+      /* Acumula scroll virtual */
+      virtualScroll += e.deltaY;
+      virtualScroll  = Math.max(0, Math.min(SCROLL_AMOUNT, virtualScroll));
+
+      const progress = virtualScroll / SCROLL_AMOUNT;
+      const idx = Math.floor(progress * TOTAL_FRAMES);
       if (!rafPending) {
         rafPending = true;
-        requestAnimationFrame(() => { draw(nextIdx); rafPending = false; });
+        requestAnimationFrame(() => { draw(idx); rafPending = false; });
       }
+
+      if (badge && virtualScroll > 40) badge.classList.add('gone');
+
+      /* ¿Terminó hacia abajo? */
+      if (goingDown && virtualScroll >= SCROLL_AMOUNT) {
+        unlock();
+        window.scrollTo({ top: bottom, behavior: 'instant' });
+      }
+      /* ¿Terminó hacia arriba? */
+      if (goingUp && virtualScroll <= 0) {
+        unlock();
+        window.scrollTo({ top: top, behavior: 'instant' });
+      }
+    }
+
+    /* ── Touch ── */
+    let touchY = 0;
+    function onTouchStart(e) { touchY = e.touches[0].clientY; }
+    function onTouchMove(e) {
+      const { top, bottom } = getSectionBounds();
+      const pageY = window.scrollY;
+      const inSection = pageY >= top - 2 && pageY <= bottom + 2;
+      if (!inSection) return;
+
+      e.preventDefault();
+      const delta = touchY - e.touches[0].clientY;
+      touchY = e.touches[0].clientY;
+
+      if (!locked) lockAt(pageY);
+
+      virtualScroll += delta;
+      virtualScroll  = Math.max(0, Math.min(SCROLL_AMOUNT, virtualScroll));
+
+      const progress = virtualScroll / SCROLL_AMOUNT;
+      draw(Math.floor(progress * TOTAL_FRAMES));
+
+      if (delta > 0 && virtualScroll >= SCROLL_AMOUNT) {
+        unlock();
+        window.scrollTo({ top: bottom, behavior: 'instant' });
+      }
+      if (delta < 0 && virtualScroll <= 0) {
+        unlock();
+        window.scrollTo({ top: top, behavior: 'instant' });
+      }
+    }
+
+    /* ── onScroll: sincroniza virtualScroll si el usuario llega
+       a la sección mediante ancla, botón, o scroll rápido ── */
+    function onScroll() {
+      if (locked) return;
+      const { top, bottom } = getSectionBounds();
+      const pageY = window.scrollY;
+
+      /* Si entró a la sección por arriba scrolleando rápido */
+      if (pageY >= top && pageY < bottom && virtualScroll < SCROLL_AMOUNT) {
+        virtualScroll = 0;
+        draw(0);
+      }
+      /* Si entró por abajo */
+      if (pageY >= bottom && virtualScroll > 0) {
+        virtualScroll = SCROLL_AMOUNT;
+        draw(TOTAL_FRAMES - 1);
+      }
+
+      lastPageY = pageY;
     }
 
     /* ── Resize ── */
     window.addEventListener('resize', () => {
       sizeCanvas();
-      sectionScrollRange = outer.offsetHeight - window.innerHeight;
       const saved = currentIdx < 0 ? 0 : currentIdx;
       currentIdx = -1;
       draw(saved);
@@ -792,13 +826,10 @@
 
     preload().then(() => {
       if (loader) loader.classList.add('hidden');
-      sectionScrollRange = outer.offsetHeight - window.innerHeight;
       currentIdx = -1;
       draw(0);
-      onScroll();
-      window.addEventListener('scroll', onScroll, { passive: true });
 
-      /* Wheel y touch: passive:false para poder llamar preventDefault */
+      window.addEventListener('scroll',     onScroll,     { passive: true  });
       window.addEventListener('wheel',      onWheel,      { passive: false });
       window.addEventListener('touchstart', onTouchStart, { passive: true  });
       window.addEventListener('touchmove',  onTouchMove,  { passive: false });
