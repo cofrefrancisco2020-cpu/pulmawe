@@ -672,11 +672,15 @@ footer {
   .productos-img::before { display: none; }
 }
 @media (max-width: 700px) {
-  .food-card-standard.is-scroll-active .food-card-bg {
-    transform: scale(1.08);
+  .food-card-bg,
+  .food-card-focus {
+    transition: transform .18s ease-out;
   }
-  .food-card-cutout.is-scroll-active .food-card-focus {
-    transform: scale(1.08);
+  .food-card-standard .food-card-bg {
+    transform: scale(var(--scroll-scale, 1));
+  }
+  .food-card-cutout .food-card-focus {
+    transform: scale(var(--scroll-scale, 1));
   }
 }
 @media (max-width: 560px) {

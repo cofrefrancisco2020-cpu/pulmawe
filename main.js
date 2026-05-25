@@ -48,7 +48,10 @@
   let ticking = false;
 
   const clearScrollActive = () => {
-    cards.forEach(card => card.classList.remove('is-scroll-active'));
+    cards.forEach(card => {
+      card.classList.remove('is-scroll-active');
+      card.style.removeProperty('--scroll-scale');
+    });
   };
 
   const updateScrollActive = () => {
@@ -59,41 +62,59 @@
       return;
     }
 
-    const viewportCenter = window.innerHeight * 0.52;
+    const viewportHeight = window.visualViewport?.height || window.innerHeight;
+    const viewportCenter = viewportHeight * 0.5;
+    const activationRadius = Math.min(viewportHeight * 0.42, 340);
     let activeCard = null;
-    let activeDistance = Number.POSITIVE_INFINITY;
+    let activeProgress = 0;
 
     cards.forEach(card => {
+      card.classList.remove('is-hovered');
+
       const rect = card.getBoundingClientRect();
-      const visible = rect.bottom > 0 && rect.top < window.innerHeight;
+      const visible = rect.bottom > 0 && rect.top < viewportHeight;
       if (!visible) return;
 
       const cardCenter = rect.top + rect.height / 2;
       const distance = Math.abs(cardCenter - viewportCenter);
-      if (distance < activeDistance) {
-        activeDistance = distance;
+      const progress = Math.max(0, 1 - distance / activationRadius);
+
+      if (progress > activeProgress) {
+        activeProgress = progress;
         activeCard = card;
       }
     });
 
     cards.forEach(card => {
-      card.classList.toggle('is-scroll-active', card === activeCard);
+      const easedProgress = card === activeCard ? activeProgress * activeProgress * (3 - 2 * activeProgress) : 0;
+      const scale = 1 + easedProgress * 0.08;
+      card.style.setProperty('--scroll-scale', scale.toFixed(4));
+      card.classList.toggle('is-scroll-active', card === activeCard && activeProgress > 0.04);
     });
   };
 
   const requestScrollActive = () => {
     if (ticking) return;
     ticking = true;
-    window.requestAnimationFrame(updateScrollActive);
+    const nextFrame = window.requestAnimationFrame || (callback => window.setTimeout(callback, 16));
+    nextFrame(updateScrollActive);
   };
 
   cards.forEach(card => {
-    card.addEventListener('pointerenter', () => card.classList.add('is-hovered'));
+    card.addEventListener('pointerenter', event => {
+      if (mobileQuery.matches || event.pointerType === 'touch') return;
+      card.classList.add('is-hovered');
+    });
     card.addEventListener('pointerleave', () => card.classList.remove('is-hovered'));
   });
 
   window.addEventListener('scroll', requestScrollActive, { passive: true });
+  window.addEventListener('touchmove', requestScrollActive, { passive: true });
   window.addEventListener('resize', requestScrollActive);
+  window.addEventListener('load', requestScrollActive);
+  window.addEventListener('pageshow', requestScrollActive);
+  window.visualViewport?.addEventListener('scroll', requestScrollActive, { passive: true });
+  window.visualViewport?.addEventListener('resize', requestScrollActive);
 
   if (mobileQuery.addEventListener) {
     mobileQuery.addEventListener('change', requestScrollActive);
