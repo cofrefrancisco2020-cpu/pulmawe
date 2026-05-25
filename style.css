@@ -671,6 +671,14 @@ footer {
   .scroll-canvas-wrap { max-height: 380px; }
   .productos-img::before { display: none; }
 }
+@media (max-width: 700px) {
+  .food-card-standard.is-scroll-active .food-card-bg {
+    transform: scale(1.08);
+  }
+  .food-card-cutout.is-scroll-active .food-card-focus {
+    transform: scale(1.08);
+  }
+}
 @media (max-width: 560px) {
   .food-grid { grid-template-columns: 1fr; }
   #hero { min-height: 100svh; }

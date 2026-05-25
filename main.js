@@ -44,10 +44,62 @@
 /* 3. FOOD CARD HOVER LAYERS */
 (function () {
   const cards = document.querySelectorAll('.food-card');
+  const mobileQuery = window.matchMedia('(max-width: 700px)');
+  let ticking = false;
+
+  const clearScrollActive = () => {
+    cards.forEach(card => card.classList.remove('is-scroll-active'));
+  };
+
+  const updateScrollActive = () => {
+    ticking = false;
+
+    if (!mobileQuery.matches) {
+      clearScrollActive();
+      return;
+    }
+
+    const viewportCenter = window.innerHeight * 0.52;
+    let activeCard = null;
+    let activeDistance = Number.POSITIVE_INFINITY;
+
+    cards.forEach(card => {
+      const rect = card.getBoundingClientRect();
+      const visible = rect.bottom > 0 && rect.top < window.innerHeight;
+      if (!visible) return;
+
+      const cardCenter = rect.top + rect.height / 2;
+      const distance = Math.abs(cardCenter - viewportCenter);
+      if (distance < activeDistance) {
+        activeDistance = distance;
+        activeCard = card;
+      }
+    });
+
+    cards.forEach(card => {
+      card.classList.toggle('is-scroll-active', card === activeCard);
+    });
+  };
+
+  const requestScrollActive = () => {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(updateScrollActive);
+  };
+
   cards.forEach(card => {
     card.addEventListener('pointerenter', () => card.classList.add('is-hovered'));
     card.addEventListener('pointerleave', () => card.classList.remove('is-hovered'));
   });
+
+  window.addEventListener('scroll', requestScrollActive, { passive: true });
+  window.addEventListener('resize', requestScrollActive);
+
+  if (mobileQuery.addEventListener) {
+    mobileQuery.addEventListener('change', requestScrollActive);
+  }
+
+  requestScrollActive();
 })();
 
 /* 4. SCROLL FRAME ANIMATION */
