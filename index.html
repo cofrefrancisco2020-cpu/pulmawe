@@ -1,18 +1,18 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pulmawe — Disfruta &amp; Comparte · Malalcahuello</title>
   <meta name="description" content="Restaurante Pulmawe en Malalcahuello. Cocina de la zona, hamburguesas artesanales, empanadas, cócteles y eventos. Ruta CH 181 Km 87." />
-  <link rel="preload" as="image" href="../assets/HAMBURGUESA_MILENARIA.jpeg" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/HAMBURGUESA_MILENARIA.jpeg" fetchpriority="high" />
   <link rel="preload" as="image" href="../frames/frames_0001.png" fetchpriority="high" />
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* ══════════════════════════════════════════════
+    /* ----------------------------------------------
        SCROLL MODULE — Frame animation (fixed)
        Referencia: patrón Trafwe
-    ══════════════════════════════════════════════ */
+    ---------------------------------------------- */
 
     /* 1. Sección exterior: sin padding, sin margen */
     #scroll-module {
@@ -125,7 +125,7 @@
     .scroll-badge svg { width: 14px; height: 14px; flex-shrink: 0; }
     .scroll-badge.gone { opacity: 0; }
 
-    /* ── Responsive: tablet ── */
+    /* -- Responsive: tablet -- */
     @media (max-width: 900px) {
       .scroll-module-layout {
         grid-template-columns: 1fr;
@@ -145,7 +145,7 @@
       }
     }
 
-    /* ── Responsive: móvil pequeño ── */
+    /* -- Responsive: móvil pequeño -- */
     @media (max-width: 480px) {
       .scroll-module-layout {
         padding: 0 16px;
@@ -165,10 +165,10 @@
     </div>
   </div>
 
-  <!-- ══════════════ NAV ══════════════ -->
+  <!-- -------------- NAV -------------- -->
   <nav id="nav">
     <a href="#hero" class="nav-logo">
-      <img src="../assets/LOGO.jpg" alt="Pulmawe" width="110" height="44" decoding="async" />
+      <img src="assets/LOGO.jpg" alt="Pulmawe" width="110" height="44" decoding="async" />
     </a>
     <div class="nav-links">
       <a href="#about">Nosotros</a>
@@ -195,7 +195,7 @@
        target="_blank" class="btn-primary">Ver Carta</a>
   </div>
 
-  <!-- ══════════════ HERO ══════════════ -->
+  <!-- -------------- HERO -------------- -->
   <section id="hero">
     <div class="hero-bg"></div>
     <div class="hero-noise"></div>
@@ -218,7 +218,7 @@
 
   <div class="divider-red"></div>
 
-  <!-- ══════════════ HORARIOS ══════════════ -->
+  <!-- -------------- HORARIOS -------------- -->
   <section id="horarios">
     <div class="container">
       <div class="horarios-grid">
@@ -246,7 +246,7 @@
     </div>
   </section>
 
-  <!-- ══════════════ SCROLL ANIMATION ══════════════ -->
+  <!-- -------------- SCROLL ANIMATION -------------- -->
   <section id="scroll-module">
     <div id="scroll-section-outer">
       <div class="scroll-module-sticky" id="scroll-sticky">
@@ -281,12 +281,12 @@
     </div>
   </section>
 
-  <!-- ══════════════ ABOUT ══════════════ -->
+  <!-- -------------- ABOUT -------------- -->
   <section id="about">
     <div class="container">
       <div class="about-grid">
         <div class="about-img-wrap">
-          <img src="../assets/KARAOKE.jpeg" alt="Ambiente Pulmawe" loading="lazy" decoding="async" />
+          <img src="assets/KARAOKE.jpeg" alt="Ambiente Pulmawe" loading="lazy" decoding="async" />
           <div class="about-badge">Disfruta<br/>&amp;<br/>Comparte</div>
         </div>
         <div class="about-text">
@@ -294,7 +294,7 @@
           <h2 class="headline">Un lugar único en la cordillera</h2>
           <p>En el corazón de Malalcahuello, donde la Cordillera de los Andes se impone sobre el paisaje, nació Pulmawe: un espacio gastronómico con identidad propia, pensado para quienes valoran los sabores auténticos de la zona y los buenos momentos.</p>
           <p>Desde desayunos con pastelería artesanal hasta hamburgesas de autor, empanadas hojaldradas y cócteles de temporada, cada plato cuenta una historia de ingredientes locales y cocina de corazón.</p>
-          <p>Más que un restaurante, somos el punto de encuentro de la Araucanía andina.</p>
+          <p>Más que un restaurante, somos el punto de encuentro en Malalcahuello.</p>
           <div class="about-stats">
             <div>
               <div class="stat-num">192</div>
@@ -314,7 +314,7 @@
     </div>
   </section>
 
-  <!-- ══════════════ MENU HIGHLIGHTS ══════════════ -->
+  <!-- -------------- MENU HIGHLIGHTS -------------- -->
   <section id="menu">
     <div class="container">
       <div class="menu-header">
@@ -324,8 +324,8 @@
 
       <div class="food-grid">
         <div class="food-card food-card-cutout food-card-burger">
-          <img class="food-card-bg" src="../assets/HAMBURGUESA_MILENARIA.jpeg" alt="Hamburguesa Milenaria" loading="lazy" decoding="async" />
-          <img class="food-card-focus focus-milenaria" src="../assets/HAMBURGUESA_MILENARIA.jpeg" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+          <img class="food-card-bg" src="assets/HAMBURGUESA_MILENARIA.jpeg" alt="Hamburguesa Milenaria" loading="lazy" decoding="async" />
+          <img class="food-card-focus focus-milenaria" src="assets/cutout-hamburguesa-milenaria.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
           <div class="food-card-overlay">
             <span class="food-card-name">Hamburguesa Milenaria</span>
             <span class="food-card-desc">Doble vacuno · doble queso cheddar · tocino · cebolla grillada · salsa pepinillos — $14.400</span>
@@ -333,8 +333,8 @@
         </div>
 
         <div class="food-card food-card-cutout food-card-burger">
-          <img class="food-card-bg" src="../assets/HAMBURGUESA_DON_CAMARON.jpeg" alt="Hamburguesa Don Camarón" loading="lazy" decoding="async" />
-          <img class="food-card-focus focus-don-camaron" src="../assets/HAMBURGUESA_DON_CAMARON.jpeg" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+          <img class="food-card-bg" src="assets/HAMBURGUESA_DON_CAMARON.jpeg" alt="Hamburguesa Don Camarón" loading="lazy" decoding="async" />
+          <img class="food-card-focus focus-don-camaron" src="assets/cutout-don-camaron.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
           <div class="food-card-overlay">
             <span class="food-card-name">Don Camarón</span>
             <span class="food-card-desc">Vacuno · queso fundido · camarones salteados · $13.900</span>
@@ -342,8 +342,8 @@
         </div>
 
         <div class="food-card food-card-cutout food-card-burger">
-          <img class="food-card-bg" src="../assets/HAMBURGUESA_MALALCAHUELLO.jpeg" alt="Hamburguesa Malalcahuello" loading="lazy" decoding="async" />
-          <img class="food-card-focus focus-malalcahuello" src="../assets/HAMBURGUESA_MALALCAHUELLO.jpeg" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+          <img class="food-card-bg" src="assets/HAMBURGUESA_MALALCAHUELLO.jpeg" alt="Hamburguesa Malalcahuello" loading="lazy" decoding="async" />
+          <img class="food-card-focus focus-malalcahuello" src="assets/cutout-hamburguesa-malalcahuello.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
           <div class="food-card-overlay">
             <span class="food-card-name">Malalcahuello</span>
             <span class="food-card-desc">Cebolla salteada · queso fundido · tocino — $12.900</span>
@@ -351,8 +351,8 @@
         </div>
 
         <div class="food-card food-card-cutout">
-          <img class="food-card-bg" src="../assets/empanadas_mechada_y_de_camaron.jpeg" alt="Empanadas" loading="lazy" decoding="async" />
-          <img class="food-card-focus focus-empanadas" src="../assets/empanadas_mechada_y_de_camaron.jpeg" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+          <img class="food-card-bg" src="assets/empanadas_mechada_y_de_camaron.jpeg" alt="Empanadas" loading="lazy" decoding="async" />
+          <img class="food-card-focus focus-empanadas" src="assets/cutout-empanadas.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
           <div class="food-card-overlay">
             <span class="food-card-name">Empanadas Artesanales</span>
             <span class="food-card-desc">Mechada y Camarón — hojaldradas al punto exacto</span>
@@ -360,7 +360,7 @@
         </div>
 
         <div class="food-card food-card-standard">
-          <img class="food-card-bg" src="../assets/cheesecake_maracuya_y_de_frambuesa.jpeg" alt="Pastelería" loading="lazy" decoding="async" />
+          <img class="food-card-bg" src="assets/cheesecake_maracuya_y_de_frambuesa.jpeg" alt="Pastelería" loading="lazy" decoding="async" />
           <div class="food-card-overlay">
             <span class="food-card-name">Pastelería Casera</span>
             <span class="food-card-desc">Cheesecake de Maracuyá · Cheesecake de Frambuesa · Tortas Individuales</span>
@@ -368,7 +368,7 @@
         </div>
 
         <div class="food-card food-card-standard">
-          <img class="food-card-bg" src="../assets/Luxury_cocktail_studio_photography.jpeg" alt="Cócteles Pulmawe" loading="lazy" decoding="async" />
+          <img class="food-card-bg" src="assets/Luxury_cocktail_studio_photography.jpeg" alt="Cócteles Pulmawe" loading="lazy" decoding="async" />
           <div class="food-card-overlay">
             <span class="food-card-name">Cócteles de Autor</span>
             <span class="food-card-desc">Tragos de temporada con identidad del sur</span>
@@ -395,12 +395,12 @@
     </div>
   </section>
 
-  <!-- ══════════════ COCKTAILS ══════════════ -->
+  <!-- -------------- COCKTAILS -------------- -->
   <section id="cocktails">
     <div class="container">
       <div class="cocktails-inner">
         <div class="cocktails-img">
-          <img src="../assets/Luxury_cocktail_studio_photography.jpeg" alt="Cócteles Pulmawe" loading="lazy" decoding="async" />
+          <img src="assets/Luxury_cocktail_studio_photography.jpeg" alt="Cócteles Pulmawe" loading="lazy" decoding="async" />
         </div>
         <div class="cocktails-text">
           <p class="section-tag">Bar</p>
@@ -418,7 +418,7 @@
     </div>
   </section>
 
-  <!-- ══════════════ EVENTOS ══════════════ -->
+  <!-- -------------- EVENTOS -------------- -->
   <section id="eventos">
     <div class="container">
       <div class="eventos-header">
@@ -427,14 +427,14 @@
       </div>
       <div class="eventos-grid">
         <div class="evento-card">
-          <img src="../assets/EVENTOS.jpeg" alt="Eventos Pulmawe" loading="lazy" decoding="async" />
+          <img src="assets/EVENTOS.jpeg" alt="Eventos Pulmawe" loading="lazy" decoding="async" />
           <div class="evento-card-info">
             <div class="evento-card-title">Eventos &amp; Fiestas</div>
             <div class="evento-card-sub">Música en vivo · DJ · Celebraciones</div>
           </div>
         </div>
         <div class="evento-card">
-          <img src="../assets/KARAOKE.jpeg" alt="Karaoke Pulmawe" loading="lazy" decoding="async" />
+          <img src="assets/KARAOKE.jpeg" alt="Karaoke Pulmawe" loading="lazy" decoding="async" />
           <div class="evento-card-info">
             <div class="evento-card-title">Karaoke</div>
             <div class="evento-card-sub">Las mejores noches de la Araucanía</div>
@@ -444,12 +444,12 @@
     </div>
   </section>
 
-  <!-- ══════════════ PRODUCTOS DE LA ZONA ══════════════ -->
+  <!-- -------------- PRODUCTOS DE LA ZONA -------------- -->
   <section id="productos">
     <div class="container">
       <div class="productos-grid">
         <div class="productos-img">
-          <img src="../assets/productos_de_la_zona.jpeg" alt="Productos de la zona · Araucanía" loading="lazy" decoding="async" />
+          <img src="assets/productos_de_la_zona.jpeg" alt="Productos de la zona · Araucanía" loading="lazy" decoding="async" />
         </div>
         <div class="productos-text">
           <p class="section-tag">Identidad Territorial</p>
@@ -471,7 +471,7 @@
     </div>
   </section>
 
-  <!-- ══════════════ CAFÉ ══════════════ -->
+  <!-- -------------- CAFÉ -------------- -->
   <section id="cafeteria">
     <div class="container">
       <div class="cafe-grid">
@@ -482,18 +482,18 @@
           <p>Kuchens, pies, cheesecakes, galletas y tortas individuales preparadas cada día. El desayuno perfecto antes de la montaña.</p>
           <p style="margin-top:28px;">
             <a href="https://cdn.me-qr.com/pdf/dda59ccf-5657-44f1-b1ba-15ea5789f3a8.pdf?time=1767286297"
-               target="_blank" class="btn-outline">Ver carta completa →</a>
+               target="_blank" class="btn-outline">Ver carta completa ?</a>
           </p>
         </div>
         <div class="cafe-img">
-          <img src="../assets/cafe_hausbrandt_acompanados_con_pasteleria_hecha_en_casa.png"
+          <img src="assets/cafe_hausbrandt_acompanados_con_pasteleria_hecha_en_casa.png"
                alt="Café Hausbrandt con pastelería" loading="lazy" decoding="async" />
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ══════════════ CONTACTO ══════════════ -->
+  <!-- -------------- CONTACTO -------------- -->
   <section id="contacto">
     <div class="container">
       <div class="contacto-grid">
@@ -581,11 +581,11 @@
     </div>
   </section>
 
-  <!-- ══════════════ FOOTER ══════════════ -->
+  <!-- -------------- FOOTER -------------- -->
   <footer>
     <div class="container">
       <div class="footer-logo">
-        <img src="../assets/LOGO.jpg" alt="Pulmawe" width="110" height="44" loading="lazy" decoding="async" />
+        <img src="assets/LOGO.jpg" alt="Pulmawe" width="110" height="44" loading="lazy" decoding="async" />
       </div>
       <div class="footer-divider"></div>
       <p class="footer-copy">© 2025 Pulmawe · Ruta CH 181 Km 87, Malalcahuello · pulmawe@gmail.com</p>
@@ -594,20 +594,20 @@
 
   <script src="main.js"></script>
   <script type="application/json" id="legacy-scroll-disabled">
-  /* ══════════════════════════════════════════════
+  /* ----------------------------------------------
      PULMAWE — Scroll Frame Animation
      Lock bidireccional: funciona hacia abajo y hacia arriba
-  ══════════════════════════════════════════════ */
+  ---------------------------------------------- */
   (() => {
     'use strict';
 
-    /* ── CONFIG ── */
+    /* -- CONFIG -- */
     const TOTAL_FRAMES  = 192;
     const FRAMES_DIR    = './frames/';
     const SCROLL_AMOUNT = 2400; // px totales de "scroll virtual" para recorrer todos los frames
     const pad = n => String(n).padStart(4, '0');
 
-    /* ── DOM ── */
+    /* -- DOM -- */
     const canvas = document.getElementById('frame-canvas');
     const outer  = document.getElementById('scroll-section-outer');
     const loader = document.getElementById('canvas-loader');
@@ -619,7 +619,7 @@
 
     const ctx = canvas.getContext('2d', { alpha: false });
 
-    /* ── Canvas sizing ── */
+    /* -- Canvas sizing -- */
     let vpW = 0, vpH = 0, dpr = 1;
 
     function sizeCanvas() {
@@ -635,7 +635,7 @@
       ctx.scale(dpr, dpr);
     }
 
-    /* ── drawCover ── */
+    /* -- drawCover -- */
     function drawCover(img) {
       if (!img || !img.naturalWidth) return;
       const ia = img.naturalWidth / img.naturalHeight;
@@ -651,7 +651,7 @@
       ctx.drawImage(img, sx, sy, sw, sh, 0, 0, vpW, vpH);
     }
 
-    /* ── Preload ── */
+    /* -- Preload -- */
     const frames = new Array(TOTAL_FRAMES);
     let loadedCount = 0;
 
@@ -672,7 +672,7 @@
       });
     }
 
-    /* ── Draw ── */
+    /* -- Draw -- */
     let currentIdx = -1;
     let rafPending = false;
 
@@ -683,27 +683,27 @@
       drawCover(frames[idx]);
     }
 
-    /* ══════════════════════════════════════════
+    /* ------------------------------------------
        SCROLL LOCK BIDIRECCIONAL
-       ─────────────────────────────────────────
+       -----------------------------------------
        Estado:
-         virtualScroll  → cuánto "scroll virtual" llevamos dentro
+         virtualScroll  ? cuánto "scroll virtual" llevamos dentro
                           de la animación [0 … SCROLL_AMOUNT]
-         locked         → si el page-scroll está bloqueado ahora
+         locked         ? si el page-scroll está bloqueado ahora
 
        Flujo:
-         1. Usuario scrollea hacia abajo → entra a la sección
-            → lock activo, virtualScroll sube de 0 a SCROLL_AMOUNT
-            → al llegar a SCROLL_AMOUNT → unlock, page continúa abajo
+         1. Usuario scrollea hacia abajo ? entra a la sección
+            ? lock activo, virtualScroll sube de 0 a SCROLL_AMOUNT
+            ? al llegar a SCROLL_AMOUNT ? unlock, page continúa abajo
 
          2. Usuario scrollea hacia arriba desde abajo de la sección
-            → re-entra a la sección por el borde inferior
-            → lock activo, virtualScroll baja de SCROLL_AMOUNT a 0
-            → al llegar a 0 → unlock, page continúa arriba
+            ? re-entra a la sección por el borde inferior
+            ? lock activo, virtualScroll baja de SCROLL_AMOUNT a 0
+            ? al llegar a 0 ? unlock, page continúa arriba
 
          La detección de "entrada" se hace comparando window.scrollY
          con los bordes del outer (sectionTop y sectionTop+outerH-vh).
-    ══════════════════════════════════════════ */
+    ------------------------------------------ */
     let locked        = false;
     let virtualScroll = 0;   // [0 … SCROLL_AMOUNT]
     let lastPageY     = 0;   // para detectar dirección en onScroll
@@ -729,7 +729,7 @@
       document.body.style.overflow = '';
     }
 
-    /* ── Wheel handler ── */
+    /* -- Wheel handler -- */
     function onWheel(e) {
       const { top, bottom } = getSectionBounds();
       const pageY = window.scrollY;
@@ -744,7 +744,7 @@
       const goingDown = e.deltaY > 0;
       const goingUp   = e.deltaY < 0;
 
-      /* Si no está bloqueado pero estamos en el borde correcto → bloquear */
+      /* Si no está bloqueado pero estamos en el borde correcto ? bloquear */
       if (!locked) {
         if (goingDown && pageY >= top - 2 && virtualScroll < SCROLL_AMOUNT) {
           lockAt(pageY);
@@ -780,7 +780,7 @@
       }
     }
 
-    /* ── Touch ── */
+    /* -- Touch -- */
     let touchY = 0;
     function onTouchStart(e) { touchY = e.touches[0].clientY; }
     function onTouchMove(e) {
@@ -811,8 +811,8 @@
       }
     }
 
-    /* ── onScroll: sincroniza virtualScroll si el usuario llega
-       a la sección mediante ancla, botón, o scroll rápido ── */
+    /* -- onScroll: sincroniza virtualScroll si el usuario llega
+       a la sección mediante ancla, botón, o scroll rápido -- */
     function onScroll() {
       if (locked) return;
       const { top, bottom } = getSectionBounds();
@@ -832,7 +832,7 @@
       lastPageY = pageY;
     }
 
-    /* ── Resize ── */
+    /* -- Resize -- */
     window.addEventListener('resize', () => {
       sizeCanvas();
       const saved = currentIdx < 0 ? 0 : currentIdx;
@@ -840,7 +840,7 @@
       draw(saved);
     }, { passive: true });
 
-    /* ── Init ── */
+    /* -- Init -- */
     sizeCanvas();
 
     preload().then(() => {

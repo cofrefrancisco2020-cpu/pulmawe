@@ -53,8 +53,8 @@
 /* 4. SCROLL FRAME ANIMATION */
 (function () {
   const TOTAL_FRAMES = 192;
-  const PRIMARY_FRAMES_DIR = '../frames/';
-  const FALLBACK_FRAMES_DIR = 'frames/';
+  const PRIMARY_FRAMES_DIR = 'frames/';
+  const FALLBACK_FRAMES_DIR = '../frames/';
   const CRITICAL_FRAME_STEP = 8;
   const CRITICAL_PARALLEL_LOADS = 8;
   const BACKGROUND_PARALLEL_LOADS = 3;
