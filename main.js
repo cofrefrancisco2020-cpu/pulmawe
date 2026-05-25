@@ -1,27 +1,32 @@
 /* ============================================================
-   PULMAWE — main.js
+   PULMAWE - main.js
    - Nav scroll behavior
    - Mobile menu toggle
-   - Scroll-driven frame animation (192 frames in /frames/)
+   - Progressive scroll-driven frame animation
    ============================================================ */
 
 'use strict';
 
-/* ── 1. NAV SCROLL ── */
+/* 1. NAV SCROLL */
 (function () {
   const nav = document.getElementById('nav');
+  if (!nav) return;
+
   const onScroll = () => {
     nav.classList.toggle('scrolled', window.scrollY > 40);
   };
+
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 })();
 
-/* ── 2. MOBILE MENU ── */
+/* 2. MOBILE MENU */
 (function () {
   const toggle = document.getElementById('nav-toggle');
-  const menu   = document.getElementById('mobile-menu');
-  const links  = menu.querySelectorAll('.mm-link, .btn-primary');
+  const menu = document.getElementById('mobile-menu');
+  if (!toggle || !menu) return;
+
+  const links = menu.querySelectorAll('.mm-link, .btn-primary');
 
   toggle.addEventListener('click', () => {
     const open = menu.classList.toggle('open');
@@ -29,139 +34,194 @@
     document.body.style.overflow = open ? 'hidden' : '';
   });
 
-  links.forEach(l => l.addEventListener('click', () => {
+  links.forEach(link => link.addEventListener('click', () => {
     menu.classList.remove('open');
     toggle.classList.remove('open');
     document.body.style.overflow = '';
   }));
 })();
 
-/* ── 3. SCROLL FRAME ANIMATION ── */
+/* 3. SCROLL FRAME ANIMATION */
 (function () {
-  /* ── CONFIG ── */
   const TOTAL_FRAMES = 192;
-  const NATIVE_W     = 1080;
-  const NATIVE_H     = 1920;
-  const FRAMES_DIR   = 'frames/';
+  const PRIMARY_FRAMES_DIR = '../frames/';
+  const FALLBACK_FRAMES_DIR = 'frames/';
+  const FIRST_PAINT_FRAMES = 1;
+  const MAX_PARALLEL_LOADS = 4;
   const pad = n => String(n).padStart(4, '0');
 
-  /* ── ELEMENTS ── */
-  const canvas  = document.getElementById('frame-canvas');
-  const loader  = document.getElementById('canvas-loader');
-  const fill    = document.getElementById('loader-fill');
-  const pctEl   = document.getElementById('loader-pct');
-  const wrap    = document.getElementById('scroll-canvas-wrap');
+  const canvas = document.getElementById('frame-canvas');
+  const loader = document.getElementById('canvas-loader');
+  const fill = document.getElementById('loader-fill');
+  const pctEl = document.getElementById('loader-pct');
+  const wrap = document.getElementById('scroll-canvas-wrap');
+  const outer = document.getElementById('scroll-section-outer');
+  const badge = document.querySelector('.scroll-badge');
 
-  if (!canvas || !wrap) return; // guard
+  if (!canvas || !wrap || !outer) return;
 
   const ctx = canvas.getContext('2d', { alpha: false });
-
-  /* ── SIZING ── */
-  let vpW, vpH, dpr;
-  function sizeCanvas() {
-    dpr  = Math.min(window.devicePixelRatio || 1, 2);
-    vpW  = wrap.clientWidth;
-    vpH  = wrap.clientHeight;
-    canvas.style.width  = vpW + 'px';
-    canvas.style.height = vpH + 'px';
-    canvas.width  = Math.round(vpW * dpr);
-    canvas.height = Math.round(vpH * dpr);
-    ctx.scale(dpr, dpr);
-  }
-
-  /* ── DRAW COVER ── */
-  function drawCover(img) {
-    if (!img || !img.naturalWidth) return;
-    const imgA = NATIVE_W / NATIVE_H;
-    const canA = vpW / vpH;
-    let sx, sy, sw, sh;
-    if (canA > imgA) {
-      sw = NATIVE_W; sh = NATIVE_W / canA;
-      sx = 0;        sy = (NATIVE_H - sh) / 2;
-    } else {
-      sh = NATIVE_H; sw = NATIVE_H * canA;
-      sy = 0;        sx = (NATIVE_W - sw) / 2;
-    }
-    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, vpW, vpH);
-  }
-
-  /* ── FRAME STORE ── */
   const frames = new Array(TOTAL_FRAMES).fill(null);
+  const failed = new Set();
+
+  let vpW = 0;
+  let vpH = 0;
+  let dpr = 1;
   let loadedCount = 0;
+  let currentIdx = -1;
+  let nextIdx = 0;
+  let rafPending = false;
+  let loaderReleased = false;
 
-  /* ── PROGRESSIVE PRELOAD ──
-     Load first 8 frames immediately for fast first-frame display,
-     then load the rest in the background. */
-  function preload() {
+  function framePath(index, fallback = false) {
+    const dir = fallback ? FALLBACK_FRAMES_DIR : PRIMARY_FRAMES_DIR;
+    return dir + 'frames_' + pad(index + 1) + '.png';
+  }
+
+  function updateProgress() {
+    const p = Math.round((loadedCount / TOTAL_FRAMES) * 100);
+    if (fill) fill.style.width = p + '%';
+    if (pctEl) pctEl.textContent = p + '%';
+  }
+
+  function releaseLoader() {
+    if (loaderReleased) return;
+    loaderReleased = true;
+    if (loader) loader.classList.add('hidden');
+  }
+
+  function sizeCanvas() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    vpW = Math.max(1, wrap.clientWidth);
+    vpH = Math.max(1, wrap.clientHeight || Math.round(vpW * 9 / 16));
+
+    canvas.style.width = vpW + 'px';
+    canvas.style.height = vpH + 'px';
+    canvas.width = Math.round(vpW * dpr);
+    canvas.height = Math.round(vpH * dpr);
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = '#151515';
+    ctx.fillRect(0, 0, vpW, vpH);
+  }
+
+  function drawCover(img) {
+    if (!img || !img.naturalWidth || !vpW || !vpH) return false;
+
+    const imgA = img.naturalWidth / img.naturalHeight;
+    const canA = vpW / vpH;
+    let sx = 0;
+    let sy = 0;
+    let sw = img.naturalWidth;
+    let sh = img.naturalHeight;
+
+    if (canA > imgA) {
+      sh = sw / canA;
+      sy = (img.naturalHeight - sh) / 2;
+    } else {
+      sw = sh * canA;
+      sx = (img.naturalWidth - sw) / 2;
+    }
+
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, vpW, vpH);
+    return true;
+  }
+
+  function nearestLoadedFrame(idx) {
+    for (let offset = 0; offset < TOTAL_FRAMES; offset++) {
+      const prev = frames[idx - offset];
+      if (prev && prev.naturalWidth) return prev;
+
+      const next = frames[idx + offset];
+      if (next && next.naturalWidth) return next;
+    }
+    return null;
+  }
+
+  function draw(idx) {
+    const clamped = Math.max(0, Math.min(TOTAL_FRAMES - 1, idx));
+    const img = frames[clamped] || nearestLoadedFrame(clamped);
+
+    if (!img || !img.naturalWidth) return;
+    if (clamped === currentIdx && frames[clamped]) return;
+
+    currentIdx = clamped;
+    drawCover(img);
+  }
+
+  function loadFrame(index) {
+    if (frames[index] || failed.has(index)) return Promise.resolve(frames[index]);
+
     return new Promise(resolve => {
-      let resolved = false;
-      const EAGER = Math.min(8, TOTAL_FRAMES);
+      const img = new Image();
+      img.decoding = 'async';
 
-      function onLoad() {
+      const done = ok => {
+        if (ok) {
+          frames[index] = img;
+        } else {
+          failed.add(index);
+        }
+
         loadedCount++;
-        const p = Math.round((loadedCount / TOTAL_FRAMES) * 100);
-        fill.style.width = p + '%';
-        pctEl.textContent = p + '%';
+        updateProgress();
 
-        // Resolve after first batch so UI can show something quickly
-        if (!resolved && loadedCount >= EAGER) {
-          resolved = true;
-          resolve();
+        if (loadedCount >= FIRST_PAINT_FRAMES && frames[0]) {
+          draw(0);
+          releaseLoader();
         }
-        // Also resolve when everything is done (in case EAGER never triggers)
-        if (loadedCount === TOTAL_FRAMES && !resolved) {
-          resolved = true;
-          resolve();
-        }
-      }
 
-      for (let i = 0; i < TOTAL_FRAMES; i++) {
-        const img = new Image();
-        img.onload  = onLoad;
-        img.onerror = onLoad; // count errors too so we never hang
-        img.src = FRAMES_DIR + 'frames_' + pad(i + 1) + '.png';
-        frames[i] = img;
-      }
+        resolve(frames[index]);
+      };
+
+      img.onload = () => done(true);
+      img.onerror = () => {
+        img.onerror = () => done(false);
+        img.src = framePath(index, true);
+      };
+
+      img.src = framePath(index, false);
     });
   }
 
-  /* ── SCROLL → FRAME ── */
-  let currentIdx = -1;
-  function draw(idx) {
-    if (idx === currentIdx) return;
-    currentIdx = idx;
-    const img = frames[idx];
-    if (img && img.naturalWidth) {
-      drawCover(img);
-    } else {
-      // If frame not loaded yet, find nearest loaded frame
-      for (let offset = 1; offset < TOTAL_FRAMES; offset++) {
-        const prev = frames[Math.max(0, idx - offset)];
-        if (prev && prev.naturalWidth) { drawCover(prev); break; }
+  async function loadQueue(indices) {
+    let cursor = 0;
+
+    async function worker() {
+      while (cursor < indices.length) {
+        const index = indices[cursor++];
+        await loadFrame(index);
       }
+    }
+
+    await Promise.all(
+      Array.from({ length: Math.min(MAX_PARALLEL_LOADS, indices.length) }, worker)
+    );
+  }
+
+  function idleLoadRest() {
+    const indices = Array.from({ length: TOTAL_FRAMES - 1 }, (_, i) => i + 1);
+    const start = () => loadQueue(indices);
+
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(start, { timeout: 1200 });
+    } else {
+      window.setTimeout(start, 250);
     }
   }
 
-  /* ── SCROLL HANDLER ── */
-  let rafPending = false;
-  let nextIdx    = 0;
-
   function getProgress() {
-    const rect = wrap.getBoundingClientRect();
-    // Pin animation while wrap is roughly in viewport
-    // We want animation to span a longer scroll range: use section height
-    const section    = document.getElementById('scroll-module');
-    const secTop     = section.getBoundingClientRect().top + window.scrollY;
-    const secHeight  = section.offsetHeight;
-    const scrollY    = window.scrollY;
-    const range      = secHeight - window.innerHeight;
-    const scrolled   = scrollY - secTop;
-    return Math.max(0, Math.min(1, scrolled / Math.max(1, range)));
+    const top = outer.getBoundingClientRect().top + window.scrollY;
+    const range = Math.max(1, outer.offsetHeight - window.innerHeight);
+    return Math.max(0, Math.min(1, (window.scrollY - top) / range));
   }
 
   function onScroll() {
     const progress = getProgress();
-    nextIdx = Math.min(TOTAL_FRAMES - 1, Math.floor(progress * TOTAL_FRAMES));
+    nextIdx = Math.min(TOTAL_FRAMES - 1, Math.floor(progress * (TOTAL_FRAMES - 1)));
+
+    if (badge) badge.classList.toggle('gone', progress > 0.04);
+
     if (!rafPending) {
       rafPending = true;
       requestAnimationFrame(() => {
@@ -171,22 +231,20 @@
     }
   }
 
-  /* ── RESIZE ── */
   window.addEventListener('resize', () => {
     sizeCanvas();
-    const saved = currentIdx < 0 ? 0 : currentIdx;
+    const saved = currentIdx < 0 ? nextIdx : currentIdx;
     currentIdx = -1;
     draw(saved);
   }, { passive: true });
 
-  /* ── INIT ── */
   sizeCanvas();
-  preload().then(() => {
-    sizeCanvas();
-    currentIdx = -1;
-    draw(0);
-    loader.classList.add('hidden');
+  updateProgress();
+
+  loadFrame(0).finally(() => {
+    releaseLoader();
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
+    idleLoadRest();
   });
 })();

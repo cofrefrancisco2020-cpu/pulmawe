@@ -148,7 +148,7 @@ a { color: inherit; text-decoration: none; }
 .hero-bg::after {
   content: '';
   position: absolute; inset: 0;
-  background: url('assets/HAMBURGUESA_MILENARIA.jpeg') center/cover no-repeat;
+  background: url('../assets/HAMBURGUESA_MILENARIA.jpeg') center/cover no-repeat;
   opacity: .28;
   transform: scale(1.04);
   transition: transform 8s ease-out;
