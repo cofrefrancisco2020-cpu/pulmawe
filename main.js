@@ -41,12 +41,23 @@
   }));
 })();
 
-/* 3. SCROLL FRAME ANIMATION */
+/* 3. FOOD CARD HOVER LAYERS */
+(function () {
+  const cards = document.querySelectorAll('.food-card');
+  cards.forEach(card => {
+    card.addEventListener('pointerenter', () => card.classList.add('is-hovered'));
+    card.addEventListener('pointerleave', () => card.classList.remove('is-hovered'));
+  });
+})();
+
+/* 4. SCROLL FRAME ANIMATION */
 (function () {
   const TOTAL_FRAMES = 192;
   const PRIMARY_FRAMES_DIR = '../frames/';
   const FALLBACK_FRAMES_DIR = 'frames/';
-  const MAX_PARALLEL_LOADS = 8;
+  const CRITICAL_FRAME_STEP = 8;
+  const CRITICAL_PARALLEL_LOADS = 8;
+  const BACKGROUND_PARALLEL_LOADS = 3;
   const pad = n => String(n).padStart(4, '0');
 
   const canvas = document.getElementById('frame-canvas');
@@ -70,9 +81,11 @@
   let vpH = 0;
   let dpr = 1;
   let loadedCount = 0;
+  let criticalLoadedCount = 0;
   let currentIdx = -1;
   let nextIdx = 0;
   let rafPending = false;
+  let criticalFrameSet = new Set();
 
   function framePath(index, fallback = false) {
     const dir = fallback ? FALLBACK_FRAMES_DIR : PRIMARY_FRAMES_DIR;
@@ -80,7 +93,8 @@
   }
 
   function updateProgress() {
-    const p = Math.round((loadedCount / TOTAL_FRAMES) * 100);
+    const criticalTotal = Math.max(1, criticalFrameSet.size);
+    const p = Math.round((criticalLoadedCount / criticalTotal) * 100);
     if (fill) fill.style.width = p + '%';
     if (pctEl) pctEl.textContent = p + '%';
     if (pageLoaderFill) pageLoaderFill.style.width = p + '%';
@@ -152,7 +166,7 @@
     drawCover(img);
   }
 
-  function loadFrame(index) {
+  function loadFrame(index, isCritical = false) {
     if (frames[index] || failed.has(index)) return Promise.resolve(frames[index]);
 
     return new Promise(resolve => {
@@ -167,6 +181,7 @@
         }
 
         loadedCount++;
+        if (isCritical) criticalLoadedCount++;
         updateProgress();
 
         if (frames[0] && currentIdx < 0) {
@@ -186,18 +201,18 @@
     });
   }
 
-  async function loadQueue(indices) {
+  async function loadQueue(indices, parallelLoads, critical = false) {
     let cursor = 0;
 
     async function worker() {
       while (cursor < indices.length) {
         const index = indices[cursor++];
-        await loadFrame(index);
+        await loadFrame(index, critical);
       }
     }
 
     await Promise.all(
-      Array.from({ length: Math.min(MAX_PARALLEL_LOADS, indices.length) }, worker)
+      Array.from({ length: Math.min(parallelLoads, indices.length) }, worker)
     );
   }
 
@@ -230,15 +245,28 @@
   }, { passive: true });
 
   sizeCanvas();
-  updateProgress();
 
   const allFrameIndexes = Array.from({ length: TOTAL_FRAMES }, (_, i) => i);
+  const criticalFrameIndexes = allFrameIndexes.filter(i => (
+    i === 0 || i === TOTAL_FRAMES - 1 || i % CRITICAL_FRAME_STEP === 0
+  ));
+  criticalFrameSet = new Set(criticalFrameIndexes);
+  updateProgress();
 
-  loadQueue(allFrameIndexes).finally(() => {
+  loadQueue(criticalFrameIndexes, CRITICAL_PARALLEL_LOADS, true).finally(() => {
     currentIdx = -1;
     draw(0);
     releaseLoaders();
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
+
+    const remainingFrameIndexes = allFrameIndexes.filter(i => !criticalFrameSet.has(i));
+    window.setTimeout(() => {
+      loadQueue(remainingFrameIndexes, BACKGROUND_PARALLEL_LOADS, false).then(() => {
+        const saved = currentIdx < 0 ? nextIdx : currentIdx;
+        currentIdx = -1;
+        draw(saved);
+      });
+    }, 200);
   });
 })();

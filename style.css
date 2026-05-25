@@ -415,14 +415,33 @@ a { color: inherit; text-decoration: none; }
   background: #0a0a0a;
   border-radius: 4px;
 }
-.food-card img {
+.food-card-bg,
+.food-card-focus {
+  position: absolute;
+  inset: 0;
   width: 100%; height: 100%;
   object-fit: cover;
-  transition: transform .55s cubic-bezier(.25,.46,.45,.94);
 }
-.food-card:hover img { transform: scale(1.08); }
+.food-card-bg {
+  z-index: 1;
+}
+.food-card-focus {
+  z-index: 2;
+  pointer-events: none;
+  transition: transform .55s cubic-bezier(.25,.46,.45,.94);
+  will-change: transform;
+}
+.food-card:hover .food-card-focus,
+.food-card.is-hovered .food-card-focus { transform: scale(1.12); }
+.focus-milenaria { clip-path: ellipse(56% 54% at 50% 64%); transform-origin: 50% 64%; }
+.focus-don-camaron { clip-path: ellipse(46% 42% at 54% 64%); transform-origin: 54% 64%; }
+.focus-malalcahuello { clip-path: ellipse(52% 45% at 57% 61%); transform-origin: 57% 61%; }
+.focus-empanadas { clip-path: ellipse(44% 36% at 43% 66%); transform-origin: 43% 66%; }
+.focus-pasteleria { clip-path: ellipse(58% 42% at 52% 53%); transform-origin: 52% 53%; }
+.focus-cocteles { clip-path: ellipse(56% 50% at 55% 66%); transform-origin: 55% 66%; }
 .food-card-overlay {
   position: absolute; inset: 0;
+  z-index: 3;
   background: linear-gradient(to top, rgba(0,0,0,.85) 0%, transparent 55%);
   display: flex; flex-direction: column; justify-content: flex-end;
   padding: 24px 20px;
