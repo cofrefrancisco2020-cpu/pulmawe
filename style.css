@@ -424,21 +424,48 @@ a { color: inherit; text-decoration: none; }
 }
 .food-card-bg {
   z-index: 1;
+  transition: transform .55s cubic-bezier(.25,.46,.45,.94);
 }
 .food-card-focus {
   z-index: 2;
   pointer-events: none;
+  opacity: 0;
   transition: transform .55s cubic-bezier(.25,.46,.45,.94);
   will-change: transform;
 }
-.food-card:hover .food-card-focus,
-.food-card.is-hovered .food-card-focus { transform: scale(1.12); }
-.focus-milenaria { clip-path: ellipse(56% 54% at 50% 64%); transform-origin: 50% 64%; }
-.focus-don-camaron { clip-path: ellipse(46% 42% at 54% 64%); transform-origin: 54% 64%; }
-.focus-malalcahuello { clip-path: ellipse(52% 45% at 57% 61%); transform-origin: 57% 61%; }
-.focus-empanadas { clip-path: ellipse(44% 36% at 43% 66%); transform-origin: 43% 66%; }
-.focus-pasteleria { clip-path: ellipse(58% 42% at 52% 53%); transform-origin: 52% 53%; }
-.focus-cocteles { clip-path: ellipse(56% 50% at 55% 66%); transform-origin: 55% 66%; }
+.food-card-standard:hover .food-card-bg,
+.food-card-standard.is-hovered .food-card-bg {
+  transform: scale(1.08);
+}
+.food-card-cutout:hover .food-card-focus,
+.food-card-cutout.is-hovered .food-card-focus {
+  opacity: 1;
+  transform: scale(1.075);
+}
+.focus-milenaria {
+  clip-path: ellipse(42% 47% at 72% 58%);
+  transform-origin: 72% 58%;
+  -webkit-mask-image: radial-gradient(ellipse 42% 47% at 72% 58%, #000 56%, rgba(0,0,0,.88) 70%, transparent 100%);
+  mask-image: radial-gradient(ellipse 42% 47% at 72% 58%, #000 56%, rgba(0,0,0,.88) 70%, transparent 100%);
+}
+.focus-don-camaron {
+  clip-path: ellipse(36% 39% at 55% 63%);
+  transform-origin: 55% 63%;
+  -webkit-mask-image: radial-gradient(ellipse 36% 39% at 55% 63%, #000 58%, rgba(0,0,0,.86) 72%, transparent 100%);
+  mask-image: radial-gradient(ellipse 36% 39% at 55% 63%, #000 58%, rgba(0,0,0,.86) 72%, transparent 100%);
+}
+.focus-malalcahuello {
+  clip-path: ellipse(47% 43% at 67% 62%);
+  transform-origin: 67% 62%;
+  -webkit-mask-image: radial-gradient(ellipse 47% 43% at 67% 62%, #000 58%, rgba(0,0,0,.86) 74%, transparent 100%);
+  mask-image: radial-gradient(ellipse 47% 43% at 67% 62%, #000 58%, rgba(0,0,0,.86) 74%, transparent 100%);
+}
+.focus-empanadas {
+  clip-path: ellipse(37% 31% at 49% 61%);
+  transform-origin: 49% 61%;
+  -webkit-mask-image: radial-gradient(ellipse 37% 31% at 49% 61%, #000 60%, rgba(0,0,0,.86) 75%, transparent 100%);
+  mask-image: radial-gradient(ellipse 37% 31% at 49% 61%, #000 60%, rgba(0,0,0,.86) 75%, transparent 100%);
+}
 .food-card-overlay {
   position: absolute; inset: 0;
   z-index: 3;
