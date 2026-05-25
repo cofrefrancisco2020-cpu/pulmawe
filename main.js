@@ -46,14 +46,16 @@
   const TOTAL_FRAMES = 192;
   const PRIMARY_FRAMES_DIR = '../frames/';
   const FALLBACK_FRAMES_DIR = 'frames/';
-  const FIRST_PAINT_FRAMES = 1;
-  const MAX_PARALLEL_LOADS = 4;
+  const MAX_PARALLEL_LOADS = 8;
   const pad = n => String(n).padStart(4, '0');
 
   const canvas = document.getElementById('frame-canvas');
   const loader = document.getElementById('canvas-loader');
   const fill = document.getElementById('loader-fill');
   const pctEl = document.getElementById('loader-pct');
+  const pageLoader = document.getElementById('page-loader');
+  const pageLoaderFill = document.getElementById('page-loader-fill');
+  const pageLoaderPct = document.getElementById('page-loader-pct');
   const wrap = document.getElementById('scroll-canvas-wrap');
   const outer = document.getElementById('scroll-section-outer');
   const badge = document.querySelector('.scroll-badge');
@@ -71,7 +73,6 @@
   let currentIdx = -1;
   let nextIdx = 0;
   let rafPending = false;
-  let loaderReleased = false;
 
   function framePath(index, fallback = false) {
     const dir = fallback ? FALLBACK_FRAMES_DIR : PRIMARY_FRAMES_DIR;
@@ -82,12 +83,14 @@
     const p = Math.round((loadedCount / TOTAL_FRAMES) * 100);
     if (fill) fill.style.width = p + '%';
     if (pctEl) pctEl.textContent = p + '%';
+    if (pageLoaderFill) pageLoaderFill.style.width = p + '%';
+    if (pageLoaderPct) pageLoaderPct.textContent = p + '%';
   }
 
-  function releaseLoader() {
-    if (loaderReleased) return;
-    loaderReleased = true;
+  function releaseLoaders() {
     if (loader) loader.classList.add('hidden');
+    if (pageLoader) pageLoader.classList.add('hidden');
+    document.body.classList.remove('is-preloading');
   }
 
   function sizeCanvas() {
@@ -166,9 +169,8 @@
         loadedCount++;
         updateProgress();
 
-        if (loadedCount >= FIRST_PAINT_FRAMES && frames[0]) {
+        if (frames[0] && currentIdx < 0) {
           draw(0);
-          releaseLoader();
         }
 
         resolve(frames[index]);
@@ -197,17 +199,6 @@
     await Promise.all(
       Array.from({ length: Math.min(MAX_PARALLEL_LOADS, indices.length) }, worker)
     );
-  }
-
-  function idleLoadRest() {
-    const indices = Array.from({ length: TOTAL_FRAMES - 1 }, (_, i) => i + 1);
-    const start = () => loadQueue(indices);
-
-    if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(start, { timeout: 1200 });
-    } else {
-      window.setTimeout(start, 250);
-    }
   }
 
   function getProgress() {
@@ -241,10 +232,13 @@
   sizeCanvas();
   updateProgress();
 
-  loadFrame(0).finally(() => {
-    releaseLoader();
+  const allFrameIndexes = Array.from({ length: TOTAL_FRAMES }, (_, i) => i);
+
+  loadQueue(allFrameIndexes).finally(() => {
+    currentIdx = -1;
+    draw(0);
+    releaseLoaders();
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    idleLoadRest();
   });
 })();

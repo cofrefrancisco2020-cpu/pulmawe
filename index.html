@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -154,7 +154,16 @@
     }
   </style>
 </head>
-<body>
+<body class="is-preloading">
+
+  <div id="page-loader" role="status" aria-live="polite">
+    <div class="page-loader-inner">
+      <span class="page-loader-kicker">Pulmawe</span>
+      <strong>Preparando la experiencia</strong>
+      <div class="page-loader-bar"><div class="page-loader-fill" id="page-loader-fill"></div></div>
+      <span class="page-loader-pct" id="page-loader-pct">0%</span>
+    </div>
+  </div>
 
   <!-- ══════════════ NAV ══════════════ -->
   <nav id="nav">
@@ -237,6 +246,41 @@
     </div>
   </section>
 
+  <!-- ══════════════ SCROLL ANIMATION ══════════════ -->
+  <section id="scroll-module">
+    <div id="scroll-section-outer">
+      <div class="scroll-module-sticky" id="scroll-sticky">
+        <div class="scroll-module-layout container">
+          <div class="scroll-text">
+            <p class="section-tag">Pulmawe en cada estación</p>
+            <h2 class="headline">Un lugar que cambia con el clima, la luz y la magia del sur</h2>
+            <p>Desde los días cálidos de verano hasta la nieve del invierno, Pulmawe se transforma con cada estación, manteniendo siempre su esencia de bosque, montaña y experiencia sureña.</p>
+            <p style="margin-top:24px;">
+              <a href="#menu" class="btn-primary">Ver el Menú</a>
+            </p>
+          </div>
+          <div class="scroll-canvas-wrap" id="scroll-canvas-wrap">
+            <!-- Loader -->
+            <div class="canvas-loader" id="canvas-loader">
+              <span class="loader-text">Cargando</span>
+              <div class="loader-bar"><div class="loader-fill" id="loader-fill"></div></div>
+              <span class="loader-pct" id="loader-pct">0%</span>
+            </div>
+            <!-- Canvas -->
+            <canvas id="frame-canvas"></canvas>
+            <!-- Badge -->
+            <div class="scroll-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12l7 7 7-7"/>
+              </svg>
+              Scroll
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ══════════════ ABOUT ══════════════ -->
   <section id="about">
     <div class="container">
@@ -270,41 +314,6 @@
     </div>
   </section>
 
-  <!-- ══════════════ SCROLL ANIMATION ══════════════ -->
-  <section id="scroll-module">
-    <div id="scroll-section-outer">
-      <div class="scroll-module-sticky" id="scroll-sticky">
-        <div class="scroll-module-layout container">
-          <div class="scroll-text">
-            <p class="section-tag">Pumalhue en cada estación</p>
-            <h2 class="headline">Un lugar que cambia con el clima, la luz y la magia del sur</h2>
-            <p>Desde los días cálidos de verano hasta la nieve del invierno, Pumalhue se transforma con cada estación, manteniendo siempre su esencia de bosque, montaña y experiencia sureña.</p>
-            <p style="margin-top:24px;">
-              <a href="#menu" class="btn-primary">Ver el Menú</a>
-            </p>
-          </div>
-          <div class="scroll-canvas-wrap" id="scroll-canvas-wrap">
-            <!-- Loader -->
-            <div class="canvas-loader" id="canvas-loader">
-              <span class="loader-text">Cargando</span>
-              <div class="loader-bar"><div class="loader-fill" id="loader-fill"></div></div>
-              <span class="loader-pct" id="loader-pct">0%</span>
-            </div>
-            <!-- Canvas -->
-            <canvas id="frame-canvas"></canvas>
-            <!-- Badge -->
-            <div class="scroll-badge">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 5v14M5 12l7 7 7-7"/>
-              </svg>
-              Scroll
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- ══════════════ MENU HIGHLIGHTS ══════════════ -->
   <section id="menu">
     <div class="container">
@@ -314,8 +323,7 @@
       </div>
 
       <div class="food-grid">
-        <!-- Wide card -->
-        <div class="food-card food-card-wide">
+        <div class="food-card food-card-burger">
           <img src="../assets/HAMBURGUESA_MILENARIA.jpeg" alt="Hamburguesa Milenaria" loading="lazy" decoding="async" />
           <div class="food-card-overlay">
             <span class="food-card-name">Hamburguesa Milenaria</span>
@@ -323,7 +331,22 @@
           </div>
         </div>
 
-        <!-- Tall card -->
+        <div class="food-card food-card-burger">
+          <img src="../assets/HAMBURGUESA_DON_CAMARON.jpeg" alt="Hamburguesa Don Camarón" loading="lazy" decoding="async" />
+          <div class="food-card-overlay">
+            <span class="food-card-name">Don Camarón</span>
+            <span class="food-card-desc">Vacuno · queso fundido · camarones salteados · $13.900</span>
+          </div>
+        </div>
+
+        <div class="food-card food-card-burger">
+          <img src="../assets/HAMBURGUESA_MALALCAHUELLO.jpeg" alt="Hamburguesa Malalcahuello" loading="lazy" decoding="async" />
+          <div class="food-card-overlay">
+            <span class="food-card-name">Malalcahuello</span>
+            <span class="food-card-desc">Cebolla salteada · queso fundido · tocino — $12.900</span>
+          </div>
+        </div>
+
         <div class="food-card">
           <img src="../assets/empanadas_mechada_y_de_camaron.jpeg" alt="Empanadas" loading="lazy" decoding="async" />
           <div class="food-card-overlay">
@@ -332,30 +355,19 @@
           </div>
         </div>
 
-        <!-- Card -->
         <div class="food-card">
-          <img src="../assets/HAMBURGUESA_DON_CAMARON.jpeg" alt="Hamburguesa Don Camarón" loading="lazy" decoding="async" />
-          <div class="food-card-overlay">
-            <span class="food-card-name">Don Camarón</span>
-            <span class="food-card-desc">Vacuno · queso fundido · camarones salteados · $13.900</span>
-          </div>
-        </div>
-
-        <!-- Card -->
-        <div class="food-card">
-          <img src="../assets/HAMBURGUESA_MALALCAHUELLO.jpeg" alt="Hamburguesa Malalcahuello" loading="lazy" decoding="async" />
-          <div class="food-card-overlay">
-            <span class="food-card-name">Malalcahuello</span>
-            <span class="food-card-desc">Cebolla salteada · queso fundido · tocino — $12.900</span>
-          </div>
-        </div>
-
-        <!-- Wide card -->
-        <div class="food-card food-card-wide">
           <img src="../assets/cheesecake_maracuya_y_de_frambuesa.jpeg" alt="Pastelería" loading="lazy" decoding="async" />
           <div class="food-card-overlay">
             <span class="food-card-name">Pastelería Casera</span>
             <span class="food-card-desc">Cheesecake de Maracuyá · Cheesecake de Frambuesa · Tortas Individuales</span>
+          </div>
+        </div>
+
+        <div class="food-card">
+          <img src="../assets/Luxury_cocktail_studio_photography.jpeg" alt="Cócteles Pulmawe" loading="lazy" decoding="async" />
+          <div class="food-card-overlay">
+            <span class="food-card-name">Cócteles de Autor</span>
+            <span class="food-card-desc">Tragos de temporada con identidad del sur</span>
           </div>
         </div>
       </div>
@@ -438,7 +450,7 @@
         <div class="productos-text">
           <p class="section-tag">Identidad Territorial</p>
           <h2 class="headline">Del bosque andino a tu mesa</h2>
-          <p>Pulmawe nace del paisaje que lo rodea. Usamos ingredientes emblemáticos de la Araucanía: morchelas y callampas del bosque húmedo, piñones de la Araucaria milenaria, rosa mosqueta silvestre, cervezas artesanales locales y hongos nativos que solo crecen a estas alturas.</p>
+          <p>Pulmawe nace del paisaje que lo rodea. Usamos ingredientes emblemáticos de la Araucanía: morchelas y hongos silvestres del bosque húmedo, piñones de la Araucaria milenaria, rosa mosqueta silvestre, cervezas artesanales locales y productos nativos que solo crecen a estas alturas.</p>
           <p>Cocina de territorio: respetuosa con el entorno, fiel a los sabores que llevan siglos aquí.</p>
           <div class="productos-tags">
             <span class="ptag">Morchelas</span>
@@ -841,3 +853,4 @@
   </script>
 </body>
 </html>
+

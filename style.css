@@ -29,8 +29,77 @@ body {
   line-height: 1.65;
   overflow-x: hidden;
 }
+body.is-preloading {
+  overflow: hidden;
+}
+body.is-preloading #nav,
+body.is-preloading #hero,
+body.is-preloading #horarios,
+body.is-preloading #scroll-module,
+body.is-preloading #about,
+body.is-preloading #menu,
+body.is-preloading #productos,
+body.is-preloading #eventos,
+body.is-preloading #contacto,
+body.is-preloading footer {
+  visibility: hidden;
+}
 img { display: block; width: 100%; height: auto; object-fit: cover; }
 a { color: inherit; text-decoration: none; }
+
+#page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(rgba(10,10,10,.82), rgba(10,10,10,.92)),
+    url('../assets/HAMBURGUESA_MILENARIA.jpeg') center/cover no-repeat;
+  color: var(--cream);
+  transition: opacity .45s ease, visibility .45s ease;
+}
+#page-loader.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.page-loader-inner {
+  width: min(420px, calc(100vw - 48px));
+  text-align: center;
+}
+.page-loader-kicker,
+.page-loader-pct {
+  display: block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--red);
+}
+.page-loader-inner strong {
+  display: block;
+  margin-top: 8px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.5rem, 7vw, 4rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 1px;
+}
+.page-loader-bar {
+  width: 100%;
+  height: 3px;
+  margin: 28px 0 10px;
+  background: rgba(255,255,255,.16);
+  overflow: hidden;
+}
+.page-loader-fill {
+  width: 0%;
+  height: 100%;
+  background: var(--red);
+  transition: width .16s ease;
+}
 
 /* ── Utility ── */
 .container { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
@@ -337,12 +406,14 @@ a { color: inherit; text-decoration: none; }
 .food-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
+  gap: 12px;
 }
 .food-card {
   position: relative; overflow: hidden;
-  aspect-ratio: 3/4;
+  aspect-ratio: 4/3;
   cursor: pointer;
+  background: #0a0a0a;
+  border-radius: 4px;
 }
 .food-card img {
   width: 100%; height: 100%;
@@ -367,8 +438,7 @@ a { color: inherit; text-decoration: none; }
   transition: all .3s;
 }
 .food-card:hover .food-card-desc { opacity: 1; transform: translateY(0); }
-.food-card-wide { grid-column: span 2; }
-.food-card-wide .food-card-name { font-size: 1.9rem; }
+.food-card-burger .food-card-name { font-size: 1.6rem; }
 
 /* carta CTA */
 .carta-cta {
@@ -559,7 +629,6 @@ footer {
   .scroll-module-inner, .cafe-grid, .churrascos-inner { grid-template-columns: 1fr; gap: 40px; }
   .about-badge { right: 0; bottom: -16px; }
   .food-grid { grid-template-columns: 1fr 1fr; }
-  .food-card-wide { grid-column: span 2; }
   .eventos-grid { grid-template-columns: 1fr; }
   .about-stats { gap: 24px; }
   .carta-cta { flex-direction: column; padding: 32px; }
@@ -571,7 +640,6 @@ footer {
 }
 @media (max-width: 560px) {
   .food-grid { grid-template-columns: 1fr; }
-  .food-card-wide { grid-column: span 1; }
   #hero { min-height: 100svh; }
   .hero-title { font-size: 3.6rem; }
   .about-stats { flex-direction: column; gap: 16px; }
